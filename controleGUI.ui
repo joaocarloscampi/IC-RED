@@ -1,0 +1,1044 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>683</width>
+    <height>704</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>MainWindow</string>
+  </property>
+  <property name="styleSheet">
+   <string notr="true"/>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <widget class="QTabWidget" name="tabWidget">
+    <property name="geometry">
+     <rect>
+      <x>50</x>
+      <y>20</y>
+      <width>581</width>
+      <height>641</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>11</pointsize>
+     </font>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">
+QTabWidget::pane { /* The tab widget frame */
+    border-top: 2px solid #9c0606;
+    position: absolute;
+    top: -0.5em;
+}
+
+QTabWidget::tab-bar {
+    alignment: center;
+}
+
+/* Style the tab using the tab sub-control. Note that
+    it reads QTabBar _not_ QTabWidget */
+QTabBar::tab {
+    background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
+                                stop: 0 #212121, stop: 0.4 #2d2d2d,
+                                stop: 0.5 #2d2d2d, stop: 1.0 #212121);
+    border: 2px solid #212121;
+    border-bottom-color: #9c0606; /* same as the pane color */
+    border-top-left-radius: 4px;
+    border-top-right-radius: 4px;
+    min-width: 8ex;
+    padding: 2px;
+	color: rgb(255, 255, 255);
+}
+
+QTabBar::tab:selected, QTabBar::tab:hover {
+    background: #9c0606;
+    border: 2px solid #9c0606;
+}
+
+QTabBar::tab:selected {
+    border-color: #9c0606;
+    border-bottom-color: #9c0606; /* same as pane color */
+}</string>
+    </property>
+    <property name="tabPosition">
+     <enum>QTabWidget::North</enum>
+    </property>
+    <property name="currentIndex">
+     <number>0</number>
+    </property>
+    <property name="elideMode">
+     <enum>Qt::ElideMiddle</enum>
+    </property>
+    <widget class="QWidget" name="Jogo">
+     <property name="styleSheet">
+      <string notr="true">background-color:rgb(181, 33, 33);
+color:white;</string>
+     </property>
+     <attribute name="title">
+      <string>Jogo</string>
+     </attribute>
+     <widget class="QWidget" name="gridLayoutWidget_7">
+      <property name="geometry">
+       <rect>
+        <x>40</x>
+        <y>130</y>
+        <width>221</width>
+        <height>391</height>
+       </rect>
+      </property>
+      <layout class="QGridLayout" name="gridLayout_7">
+       <item row="3" column="0">
+        <widget class="QPushButton" name="btn_Penalti">
+         <property name="styleSheet">
+          <string notr="true">QPushButton{
+border: 2px solid rgb(45,45,45);
+border-radius:5px;
+padding:15px;
+background-color:rgb(30,30,30)
+
+}
+QPushButton:hover{
+border: 2px solid rgb(255, 28, 28);
+}
+</string>
+         </property>
+         <property name="text">
+          <string>PENALTI</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="0">
+        <widget class="QPushButton" name="btn_Jogar">
+         <property name="styleSheet">
+          <string notr="true">QPushButton{
+border: 2px solid rgb(45,45,45);
+border-radius:5px;
+padding:15px;
+background-color:rgb(30,30,30)
+
+}
+QPushButton:hover{
+border: 2px solid rgb(255, 28, 28);
+}
+</string>
+         </property>
+         <property name="text">
+          <string>JOGAR</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="0">
+        <widget class="QPushButton" name="btn_Pose">
+         <property name="styleSheet">
+          <string notr="true">QPushButton{
+border: 2px solid rgb(45,45,45);
+border-radius:5px;
+padding:15px;
+background-color:rgb(30,30,30)
+
+}
+QPushButton:hover{
+border: 2px solid rgb(255, 28, 28);
+}
+</string>
+         </property>
+         <property name="text">
+          <string>POSE INICIAL</string>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="0">
+        <widget class="QPushButton" name="btn_Parar">
+         <property name="styleSheet">
+          <string notr="true">QPushButton{
+border: 2px solid rgb(45,45,45);
+border-radius:5px;
+padding:15px;
+background-color:rgb(30,30,30)
+
+}
+QPushButton:hover{
+border: 2px solid rgb(255, 28, 28);
+}
+</string>
+         </property>
+         <property name="text">
+          <string>PARAR</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="verticalLayoutWidget">
+      <property name="geometry">
+       <rect>
+        <x>360</x>
+        <y>150</y>
+        <width>160</width>
+        <height>121</height>
+       </rect>
+      </property>
+      <layout class="QVBoxLayout" name="verticalLayout">
+       <item>
+        <widget class="QCheckBox" name="check_Comunicar">
+         <property name="text">
+          <string>Iniciar comunicação</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QCheckBox" name="check_Trocoucampo">
+         <property name="text">
+          <string>Trocou de campo</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QFrame" name="frame">
+      <property name="geometry">
+       <rect>
+        <x>0</x>
+        <y>30</y>
+        <width>581</width>
+        <height>80</height>
+       </rect>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">border: 2px solid rgb(45,45,45);
+border-radius:5px;
+padding:15px;
+background-color:rgb(30,30,30)</string>
+      </property>
+      <property name="frameShape">
+       <enum>QFrame::StyledPanel</enum>
+      </property>
+      <property name="frameShadow">
+       <enum>QFrame::Raised</enum>
+      </property>
+      <widget class="QLabel" name="label_13">
+       <property name="geometry">
+        <rect>
+         <x>80</x>
+         <y>0</y>
+         <width>421</width>
+         <height>81</height>
+        </rect>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">font: 75 14pt &quot;MS Shell Dlg 2&quot;;</string>
+       </property>
+       <property name="text">
+        <string>INTERFACE DO CONTROLE E ESTRATÉGIA</string>
+       </property>
+      </widget>
+     </widget>
+     <widget class="QLabel" name="Log">
+      <property name="geometry">
+       <rect>
+        <x>40</x>
+        <y>540</y>
+        <width>521</width>
+        <height>51</height>
+       </rect>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">border: 2px solid rgb(45,45,45);
+border-radius:5px;
+padding:15px;
+background-color:rgb(30,30,30);
+color: rgb(0, 255, 0);</string>
+      </property>
+      <property name="text">
+       <string>Aguardando interação...</string>
+      </property>
+     </widget>
+    </widget>
+    <widget class="QWidget" name="Robo0">
+     <property name="styleSheet">
+      <string notr="true">background-color:rgb(181, 33, 33);
+color:white;</string>
+     </property>
+     <attribute name="title">
+      <string>Robo 0</string>
+     </attribute>
+     <widget class="QWidget" name="verticalLayoutWidget_6">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>10</y>
+        <width>160</width>
+        <height>208</height>
+       </rect>
+      </property>
+      <layout class="QVBoxLayout" name="verticalLayout_6">
+       <item>
+        <widget class="QLabel" name="label_40">
+         <property name="styleSheet">
+          <string notr="true">border: 2px solid rgb(45,45,45);
+border-radius:5px;
+padding:15px;
+background-color:rgb(30,30,30);</string>
+         </property>
+         <property name="text">
+          <string>INTERFACE ROBÔ 0</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="label_41">
+         <property name="styleSheet">
+          <string notr="true">border: 2px solid rgb(45,45,45);
+border-radius:5px;
+padding:15px;
+background-color:rgb(30,30,30);</string>
+         </property>
+         <property name="text">
+          <string>Cor: Verde</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="label_42">
+         <property name="styleSheet">
+          <string notr="true">border: 2px solid rgb(45,45,45);
+border-radius:5px;
+padding:15px;
+background-color:rgb(30,30,30);</string>
+         </property>
+         <property name="text">
+          <string>Função:Goleiro</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="label_43">
+         <property name="styleSheet">
+          <string notr="true">border: 2px solid rgb(45,45,45);
+border-radius:5px;
+padding:15px;
+background-color:rgb(30,30,30);</string>
+         </property>
+         <property name="text">
+          <string>Código PIC: @</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QFrame" name="frame_4">
+      <property name="geometry">
+       <rect>
+        <x>380</x>
+        <y>10</y>
+        <width>191</width>
+        <height>61</height>
+       </rect>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">border: 2px solid rgb(45,45,45);
+border-radius:2px;
+background-color:rgb(30,30,30);</string>
+      </property>
+      <property name="frameShape">
+       <enum>QFrame::StyledPanel</enum>
+      </property>
+      <property name="frameShadow">
+       <enum>QFrame::Raised</enum>
+      </property>
+      <widget class="QProgressBar" name="BAT_R0">
+       <property name="geometry">
+        <rect>
+         <x>40</x>
+         <y>30</y>
+         <width>118</width>
+         <height>23</height>
+        </rect>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">
+QProgressBar {
+    border: 2px solid rgb(45,45,45);
+    border-radius: 5px;
+    text-align: center;
+}
+
+QProgressBar::chunk {
+    background-color: #5dfc60;
+    width: 20px;
+}
+	padding:4px;</string>
+       </property>
+       <property name="value">
+        <number>24</number>
+       </property>
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="textDirection">
+        <enum>QProgressBar::TopToBottom</enum>
+       </property>
+      </widget>
+      <widget class="QLabel" name="label_14">
+       <property name="geometry">
+        <rect>
+         <x>70</x>
+         <y>10</y>
+         <width>51</width>
+         <height>16</height>
+        </rect>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">border: 2px solid rgb(30,30,30);
+border-radius:5px;
+</string>
+       </property>
+       <property name="text">
+        <string>BATERIA</string>
+       </property>
+      </widget>
+     </widget>
+     <widget class="QWidget" name="formLayoutWidget_5">
+      <property name="geometry">
+       <rect>
+        <x>20</x>
+        <y>250</y>
+        <width>287</width>
+        <height>191</height>
+       </rect>
+      </property>
+      <layout class="QFormLayout" name="formLayout_5"/>
+     </widget>
+     <widget class="QWidget" name="formLayoutWidget_6">
+      <property name="geometry">
+       <rect>
+        <x>310</x>
+        <y>250</y>
+        <width>255</width>
+        <height>191</height>
+       </rect>
+      </property>
+      <layout class="QFormLayout" name="formLayout_6"/>
+     </widget>
+     <widget class="QWidget" name="gridLayoutWidget_10">
+      <property name="geometry">
+       <rect>
+        <x>80</x>
+        <y>460</y>
+        <width>231</width>
+        <height>131</height>
+       </rect>
+      </property>
+      <layout class="QGridLayout" name="gridLayout_11">
+       <item row="0" column="0">
+        <widget class="QLabel" name="label_50">
+         <property name="styleSheet">
+          <string notr="true">border: 2px solid #960303;
+border-radius:5px;
+padding:15px;
+background-color:#9c0606;</string>
+         </property>
+         <property name="text">
+          <string>VELOCIDADE RODA DIREITA</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="0">
+        <widget class="QLabel" name="label_51">
+         <property name="styleSheet">
+          <string notr="true">border: 2px solid #960303;
+border-radius:5px;
+padding:15px;
+background-color:#9c0606;</string>
+         </property>
+         <property name="text">
+          <string>VELOCIDADE RODA ESQUERDA</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="gridLayoutWidget_11">
+      <property name="geometry">
+       <rect>
+        <x>330</x>
+        <y>460</y>
+        <width>171</width>
+        <height>131</height>
+       </rect>
+      </property>
+      <layout class="QGridLayout" name="gridLayout_12">
+       <item row="2" column="0">
+        <widget class="QLCDNumber" name="LCDE_R0">
+         <property name="styleSheet">
+          <string notr="true">border: 2px solid rgb(45,45,45);
+border-radius:5px;
+padding:15px;
+background-color:rgb(30,30,30);</string>
+         </property>
+         <property name="frameShape">
+          <enum>QFrame::Panel</enum>
+         </property>
+         <property name="frameShadow">
+          <enum>QFrame::Raised</enum>
+         </property>
+         <property name="smallDecimalPoint">
+          <bool>true</bool>
+         </property>
+         <property name="segmentStyle">
+          <enum>QLCDNumber::Flat</enum>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="0">
+        <widget class="QLCDNumber" name="LCDD_R0">
+         <property name="styleSheet">
+          <string notr="true">border: 2px solid rgb(45,45,45);
+border-radius:5px;
+padding:15px;
+background-color:rgb(30,30,30);</string>
+         </property>
+         <property name="frameShape">
+          <enum>QFrame::Panel</enum>
+         </property>
+         <property name="smallDecimalPoint">
+          <bool>true</bool>
+         </property>
+         <property name="segmentStyle">
+          <enum>QLCDNumber::Flat</enum>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </widget>
+    <widget class="QWidget" name="Robo2">
+     <property name="styleSheet">
+      <string notr="true">background-color:rgb(181, 33, 33);
+color:white;</string>
+     </property>
+     <attribute name="title">
+      <string>Robo 1</string>
+     </attribute>
+     <widget class="QWidget" name="verticalLayoutWidget_5">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>10</y>
+        <width>160</width>
+        <height>208</height>
+       </rect>
+      </property>
+      <layout class="QVBoxLayout" name="verticalLayout_5">
+       <item>
+        <widget class="QLabel" name="label_17">
+         <property name="styleSheet">
+          <string notr="true">border: 2px solid rgb(45,45,45);
+border-radius:5px;
+padding:15px;
+background-color:rgb(30,30,30);</string>
+         </property>
+         <property name="text">
+          <string>INTERFACE ROBÔ 1</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="label_29">
+         <property name="styleSheet">
+          <string notr="true">border: 2px solid rgb(45,45,45);
+border-radius:5px;
+padding:15px;
+background-color:rgb(30,30,30);</string>
+         </property>
+         <property name="text">
+          <string>Cor: Vermelho</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="label_30">
+         <property name="styleSheet">
+          <string notr="true">border: 2px solid rgb(45,45,45);
+border-radius:5px;
+padding:15px;
+background-color:rgb(30,30,30);</string>
+         </property>
+         <property name="text">
+          <string>Função:Zagueiro</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="label_31">
+         <property name="styleSheet">
+          <string notr="true">border: 2px solid rgb(45,45,45);
+border-radius:5px;
+padding:15px;
+background-color:rgb(30,30,30);</string>
+         </property>
+         <property name="text">
+          <string>Código PIC: &amp;</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QFrame" name="frame_3">
+      <property name="geometry">
+       <rect>
+        <x>380</x>
+        <y>10</y>
+        <width>191</width>
+        <height>61</height>
+       </rect>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">border: 2px solid rgb(45,45,45);
+border-radius:2px;
+background-color:rgb(30,30,30);</string>
+      </property>
+      <property name="frameShape">
+       <enum>QFrame::StyledPanel</enum>
+      </property>
+      <property name="frameShadow">
+       <enum>QFrame::Raised</enum>
+      </property>
+      <widget class="QProgressBar" name="BAT_R1">
+       <property name="geometry">
+        <rect>
+         <x>40</x>
+         <y>30</y>
+         <width>118</width>
+         <height>23</height>
+        </rect>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">
+QProgressBar {
+    border: 2px solid rgb(45,45,45);
+    border-radius: 5px;
+    text-align: center;
+}
+
+QProgressBar::chunk {
+    background-color: #f03535;
+    width: 20px;
+}
+	padding:4px;</string>
+       </property>
+       <property name="value">
+        <number>24</number>
+       </property>
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="textDirection">
+        <enum>QProgressBar::TopToBottom</enum>
+       </property>
+      </widget>
+      <widget class="QLabel" name="label_11">
+       <property name="geometry">
+        <rect>
+         <x>70</x>
+         <y>10</y>
+         <width>51</width>
+         <height>16</height>
+        </rect>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">border: 2px solid rgb(30,30,30);
+border-radius:5px;
+</string>
+       </property>
+       <property name="text">
+        <string>BATERIA</string>
+       </property>
+      </widget>
+     </widget>
+     <widget class="QWidget" name="formLayoutWidget_3">
+      <property name="geometry">
+       <rect>
+        <x>20</x>
+        <y>250</y>
+        <width>287</width>
+        <height>191</height>
+       </rect>
+      </property>
+      <layout class="QFormLayout" name="formLayout_3"/>
+     </widget>
+     <widget class="QWidget" name="formLayoutWidget_4">
+      <property name="geometry">
+       <rect>
+        <x>310</x>
+        <y>250</y>
+        <width>255</width>
+        <height>217</height>
+       </rect>
+      </property>
+      <layout class="QFormLayout" name="formLayout_4"/>
+     </widget>
+     <widget class="QWidget" name="gridLayoutWidget_8">
+      <property name="geometry">
+       <rect>
+        <x>80</x>
+        <y>460</y>
+        <width>231</width>
+        <height>131</height>
+       </rect>
+      </property>
+      <layout class="QGridLayout" name="gridLayout_9">
+       <item row="0" column="0">
+        <widget class="QLabel" name="label_38">
+         <property name="styleSheet">
+          <string notr="true">border: 2px solid #960303;
+border-radius:5px;
+padding:15px;
+background-color:#9c0606;</string>
+         </property>
+         <property name="text">
+          <string>VELOCIDADE RODA DIREITA</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="0">
+        <widget class="QLabel" name="label_39">
+         <property name="styleSheet">
+          <string notr="true">border: 2px solid #960303;
+border-radius:5px;
+padding:15px;
+background-color:#9c0606;</string>
+         </property>
+         <property name="text">
+          <string>VELOCIDADE RODA ESQUERDA</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="gridLayoutWidget_9">
+      <property name="geometry">
+       <rect>
+        <x>330</x>
+        <y>460</y>
+        <width>171</width>
+        <height>131</height>
+       </rect>
+      </property>
+      <layout class="QGridLayout" name="gridLayout_10">
+       <item row="2" column="0">
+        <widget class="QLCDNumber" name="LCDE_R1">
+         <property name="styleSheet">
+          <string notr="true">border: 2px solid rgb(45,45,45);
+border-radius:5px;
+padding:15px;
+background-color:rgb(30,30,30);</string>
+         </property>
+         <property name="frameShape">
+          <enum>QFrame::Panel</enum>
+         </property>
+         <property name="frameShadow">
+          <enum>QFrame::Raised</enum>
+         </property>
+         <property name="smallDecimalPoint">
+          <bool>true</bool>
+         </property>
+         <property name="segmentStyle">
+          <enum>QLCDNumber::Flat</enum>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="0">
+        <widget class="QLCDNumber" name="LCDD_R1">
+         <property name="styleSheet">
+          <string notr="true">border: 2px solid rgb(45,45,45);
+border-radius:5px;
+padding:15px;
+background-color:rgb(30,30,30);</string>
+         </property>
+         <property name="frameShape">
+          <enum>QFrame::Panel</enum>
+         </property>
+         <property name="smallDecimalPoint">
+          <bool>true</bool>
+         </property>
+         <property name="segmentStyle">
+          <enum>QLCDNumber::Flat</enum>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </widget>
+    <widget class="QWidget" name="Robo3">
+     <property name="styleSheet">
+      <string notr="true">background-color:rgb(181, 33, 33);
+color:white;</string>
+     </property>
+     <attribute name="title">
+      <string>Robo 2</string>
+     </attribute>
+     <widget class="QWidget" name="gridLayoutWidget_5">
+      <property name="geometry">
+       <rect>
+        <x>330</x>
+        <y>460</y>
+        <width>171</width>
+        <height>131</height>
+       </rect>
+      </property>
+      <layout class="QGridLayout" name="gridLayout_5">
+       <item row="2" column="0">
+        <widget class="QLCDNumber" name="LCDE_R2">
+         <property name="styleSheet">
+          <string notr="true">border: 2px solid rgb(45,45,45);
+border-radius:5px;
+padding:15px;
+background-color:rgb(30,30,30);</string>
+         </property>
+         <property name="frameShape">
+          <enum>QFrame::Panel</enum>
+         </property>
+         <property name="frameShadow">
+          <enum>QFrame::Raised</enum>
+         </property>
+         <property name="smallDecimalPoint">
+          <bool>true</bool>
+         </property>
+         <property name="segmentStyle">
+          <enum>QLCDNumber::Flat</enum>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="0">
+        <widget class="QLCDNumber" name="LCDD_R2">
+         <property name="styleSheet">
+          <string notr="true">border: 2px solid rgb(45,45,45);
+border-radius:5px;
+padding:15px;
+background-color:rgb(30,30,30);</string>
+         </property>
+         <property name="frameShape">
+          <enum>QFrame::Panel</enum>
+         </property>
+         <property name="smallDecimalPoint">
+          <bool>true</bool>
+         </property>
+         <property name="segmentStyle">
+          <enum>QLCDNumber::Flat</enum>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="gridLayoutWidget_6">
+      <property name="geometry">
+       <rect>
+        <x>80</x>
+        <y>460</y>
+        <width>231</width>
+        <height>131</height>
+       </rect>
+      </property>
+      <layout class="QGridLayout" name="gridLayout_6">
+       <item row="0" column="0">
+        <widget class="QLabel" name="label_7">
+         <property name="styleSheet">
+          <string notr="true">border: 2px solid #960303;
+border-radius:5px;
+padding:15px;
+background-color:#9c0606;</string>
+         </property>
+         <property name="text">
+          <string>VELOCIDADE RODA DIREITA</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="0">
+        <widget class="QLabel" name="label_8">
+         <property name="styleSheet">
+          <string notr="true">border: 2px solid #960303;
+border-radius:5px;
+padding:15px;
+background-color:#9c0606;</string>
+         </property>
+         <property name="text">
+          <string>VELOCIDADE RODA ESQUERDA</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="formLayoutWidget">
+      <property name="geometry">
+       <rect>
+        <x>20</x>
+        <y>250</y>
+        <width>287</width>
+        <height>191</height>
+       </rect>
+      </property>
+      <layout class="QFormLayout" name="formLayout"/>
+     </widget>
+     <widget class="QWidget" name="formLayoutWidget_2">
+      <property name="geometry">
+       <rect>
+        <x>310</x>
+        <y>250</y>
+        <width>255</width>
+        <height>191</height>
+       </rect>
+      </property>
+      <layout class="QFormLayout" name="formLayout_2"/>
+     </widget>
+     <widget class="QWidget" name="verticalLayoutWidget_4">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>10</y>
+        <width>160</width>
+        <height>208</height>
+       </rect>
+      </property>
+      <layout class="QVBoxLayout" name="verticalLayout_4">
+       <item>
+        <widget class="QLabel" name="label_12">
+         <property name="styleSheet">
+          <string notr="true">border: 2px solid rgb(45,45,45);
+border-radius:5px;
+padding:15px;
+background-color:rgb(30,30,30);</string>
+         </property>
+         <property name="text">
+          <string>INTERFACE ROBÔ 2</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="label_20">
+         <property name="styleSheet">
+          <string notr="true">border: 2px solid rgb(45,45,45);
+border-radius:5px;
+padding:15px;
+background-color:rgb(30,30,30);</string>
+         </property>
+         <property name="text">
+          <string>Cor: Rosa</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="label_21">
+         <property name="styleSheet">
+          <string notr="true">border: 2px solid rgb(45,45,45);
+border-radius:5px;
+padding:15px;
+background-color:rgb(30,30,30);</string>
+         </property>
+         <property name="text">
+          <string>Função:Atacante</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="label_22">
+         <property name="styleSheet">
+          <string notr="true">border: 2px solid rgb(45,45,45);
+border-radius:5px;
+padding:15px;
+background-color:rgb(30,30,30);</string>
+         </property>
+         <property name="text">
+          <string>Código PIC: !</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QFrame" name="frame_2">
+      <property name="geometry">
+       <rect>
+        <x>380</x>
+        <y>10</y>
+        <width>191</width>
+        <height>61</height>
+       </rect>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">border: 2px solid rgb(45,45,45);
+border-radius:2px;
+background-color:rgb(30,30,30);</string>
+      </property>
+      <property name="frameShape">
+       <enum>QFrame::StyledPanel</enum>
+      </property>
+      <property name="frameShadow">
+       <enum>QFrame::Raised</enum>
+      </property>
+      <widget class="QProgressBar" name="BAT_R2">
+       <property name="geometry">
+        <rect>
+         <x>40</x>
+         <y>30</y>
+         <width>118</width>
+         <height>23</height>
+        </rect>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">
+QProgressBar {
+    border: 2px solid rgb(45,45,45);
+    border-radius: 5px;
+    text-align: center;
+}
+
+QProgressBar::chunk {
+    background-color: #f542e9;
+    width: 20px;
+}
+	padding:4px;</string>
+       </property>
+       <property name="value">
+        <number>24</number>
+       </property>
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="textDirection">
+        <enum>QProgressBar::TopToBottom</enum>
+       </property>
+      </widget>
+      <widget class="QLabel" name="label_9">
+       <property name="geometry">
+        <rect>
+         <x>70</x>
+         <y>10</y>
+         <width>51</width>
+         <height>16</height>
+        </rect>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">border: 2px solid rgb(30,30,30);
+border-radius:5px;
+</string>
+       </property>
+       <property name="text">
+        <string>BATERIA</string>
+       </property>
+      </widget>
+     </widget>
+    </widget>
+   </widget>
+  </widget>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>
