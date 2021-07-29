@@ -5,17 +5,17 @@ from behaviours import Univector
 def approx(robot,target,avoidObst=True,obst=None,n=8,d=2):
     navigate=Univector() #? Defines the navigation algorithm
     dl=0.000001          #? Constant to approximate phi_v
-    
+
     x=robot.xPos #? Saving (x,y) coordinates to calculate phi_v
     y=robot.yPos
     robot.xPos=robot.xPos+dl*cos(robot.theta) #? Incrementing robot (x,y) position
     robot.yPos=robot.yPos+dl*sin(robot.theta)
-    
+
     if avoidObst:
         stpTheta=navigate.univecField_N(robot,target,obst,n,d) #? Computing a step Theta to determine phi_v
     else:
         stpTheta=navigate.nVecField(robot,target,n,d) #? Computing a step Theta to determine phi_v
-    
+
     robot.xPos=x #? Returning original (x,y) coordinates
     robot.yPos=y
 
@@ -38,7 +38,7 @@ def univecController(robot,target,avoidObst=True,obst=None,n=8,d=2,stopWhenArriv
     stpTheta=approx(robot,target,avoidObst,obst,n,d)
     phi_v=arctan2(sin(stpTheta-desTheta),cos(stpTheta-desTheta))/dl #? Trick to mantain phi_v between [-pi,pi]
     theta_e=arctan2(sin(desTheta-robot.theta),cos(desTheta-robot.theta)) #? Trick to mantain theta_e between [-pi,pi]
-    v1=(2*robot.vMax-robot.L*k_w*sqrt(abs(theta_e)))/(2+robot.L*abs(phi_v))
+    v1=(2*robot.vMax-robot.LSimulador*k_w*sqrt(abs(theta_e)))/(2+robot.LSimulador*abs(phi_v))
     v2=(sqrt(k_w**2+4*robot.rMax*abs(phi_v))-k_w*sqrt(abs(theta_e)))/(2*abs(phi_v)+dl)
 
     if stopWhenArrive:

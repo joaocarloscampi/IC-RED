@@ -297,3 +297,6 @@ def positionChange(arrayFunctions, ball, arraySideCrossing, leftSide = True):
         elif((ball.yPos <  25) and (ball.xPos >  75 and ball.xPos <  112.5)):
             arrayFunctions[2].flagCruzamento = False
     return arrayFunctions
+
+def girar(robot):
+    robot.simSetVel(0, 4)

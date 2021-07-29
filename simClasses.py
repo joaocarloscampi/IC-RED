@@ -1,4 +1,4 @@
-from numpy import arctan2,pi,sqrt,cos,sin,array,matmul,amin,where,zeros,delete,append
+from numpy import arctan2,pi,sqrt,cos,sin,array,matmul,amin,where,zeros,delete,append,    random, sort
 import sim,simConst
 
 #? Operation modes for API
@@ -130,6 +130,7 @@ class Robot:
         self.face=1                          #? Defines the current face of the robot
         self.xPos=0                          #? X position
         self.yPos=0                          #? Y position
+        self.zPos=0                          #? Z position
         self.theta=0                         #? Orientation
         self.rightMotor=0                    #? Right motor handle
         self.leftMotor=0                     #? Left motor handle
@@ -139,6 +140,7 @@ class Robot:
         self.vMax=30                         #! Robot max velocity (cm/s)
         self.rMax=3*self.vMax                #! Robot max rotation velocity (rad*cm/s)
         self.L=8                             #? Base length of the robot (cm)
+        self.LSimulador=6.11                 #? Base length on coppelia of the robot (cm)
         self.R=3.4                           #? Wheel radius (cm)
         self.obst=Obstacle()                 #? Defines the robot obstacle
         self.target=Target()                 #? Defines the robot target
@@ -156,13 +158,14 @@ class Robot:
             return False
 
     #% This method connects the robot with CoppeliaSim
-    def simConnect(self,clientID,center,teamMarker,idMarker,leftMotor,rightMotor):
+    def simConnect(self,clientID,center,teamMarker,idMarker,leftMotor,rightMotor,soccerRob_dyn):
         self.clientID=clientID
         self.resC,self.center=sim.simxGetObjectHandle(self.clientID,center,opmblock)           #? Receiving robot parts in the simulation
         self.resTM,self.teamMarker=sim.simxGetObjectHandle(self.clientID,teamMarker,opmblock)
         self.resIDM,self.IDMarker=sim.simxGetObjectHandle(self.clientID,idMarker,opmblock)
         self.resLM,self.leftMotor=sim.simxGetObjectHandle(self.clientID,leftMotor,opmblock)
         self.resRM,self.rightMotor=sim.simxGetObjectHandle(self.clientID,rightMotor,opmblock)
+        self.resRB,self.soccerRob=sim.simxGetObjectHandle(self.clientID,soccerRob_dyn,opmblock) # Adicionado para IC
 
     #% This method verify the connection between the robot and the simulation
     def simCheckConnection(self):
@@ -182,18 +185,21 @@ class Robot:
             self.resC,self.centerPos=sim.simxGetObjectPosition(self.clientID,self.center,self.refPoint,opmstream)
             self.resTM,self.teamMarkerPos=sim.simxGetObjectPosition(self.clientID,self.teamMarker,self.refPoint,opmstream)
             self.resIDM,self.idMarkerPos=sim.simxGetObjectPosition(self.clientID,self.IDMarker,self.refPoint,opmstream)
+            self.resQTR,self.quaternion=sim.simxGetObjectQuaternion(self.clientID, self.soccerRob, -1, opmstream)
             self.simStream=True
         else:
             self.resC,self.centerPos=sim.simxGetObjectPosition(self.clientID,self.center,self.refPoint,opmbuffer)
             self.resTM,self.teamMarkerPos=sim.simxGetObjectPosition(self.clientID,self.teamMarker,self.refPoint,opmbuffer)
             self.resIDM,self.idMarkerPos=sim.simxGetObjectPosition(self.clientID,self.IDMarker,self.refPoint,opmbuffer)
+            self.resQTR,self.quaternion=sim.simxGetObjectQuaternion(self.clientID, self.soccerRob, -1, opmbuffer)
             self.xPos=100*self.centerPos[0]
             self.yPos=100*self.centerPos[1]
+            self.zPos=100*self.centerPos[2]
 
     #% This method sets the velocity of the robot
     def simSetVel(self,v,w):
-        self.vR=v+0.5*self.L*w
-        self.vL=v-0.5*self.L*w
+        self.vR=v+0.5*self.LSimulador*w
+        self.vL=v-0.5*self.LSimulador*w
         if self.face==1:
             self.resRM=sim.simxSetJointTargetVelocity(self.clientID,self.rightMotor,self.face*self.vR/self.R,opmoneshot)
             self.resLM=sim.simxSetJointTargetVelocity(self.clientID,self.leftMotor,self.face*self.vL/self.R,opmoneshot)

@@ -2,6 +2,7 @@ from numpy import pi,array_equal,array,tan
 from simClasses import Ball,Robot,Target,Obstacle
 import action
 from time import sleep
+import imu
 
 class StrategyTesting:
     def __init__(self):
@@ -9,14 +10,17 @@ class StrategyTesting:
         self.redRob=Robot()
         self.greenRob=Robot()
         self.pinkRob=Robot()
+        self.IMUgreenRob=imu.IMU(self.greenRob, '#0') # Adicionado para a IC
         self.arrayFunctions = [self.pinkRob, self.redRob, self.greenRob] # [Goalkeeper, Defender, Attacker]
 
     def simConnect(self,clientID):
         self.clientID=clientID
+
+        self.IMUgreenRob.getClientID(clientID) # Adicionado para a IC
         self.ball.simConnect(self.clientID,'ball')
-        self.redRob.simConnect(self.clientID,'soccerRob_pos','soccerRob_teamMarker','soccerRob_IDMarker','leftMotor','rightMotor')
-        self.greenRob.simConnect(self.clientID,'soccerRob_pos#0','soccerRob_teamMarker#0','soccerRob_IDMarker#0','leftMotor#0','rightMotor#0')
-        self.pinkRob.simConnect(self.clientID,'soccerRob_pos#1','soccerRob_teamMarker#1','soccerRob_IDMarker#1','leftMotor#1','rightMotor#1')
+        self.redRob.simConnect(self.clientID,'soccerRob_pos','soccerRob_teamMarker','soccerRob_IDMarker','leftMotor','rightMotor', 'soccerRob_pos')
+        self.greenRob.simConnect(self.clientID,'soccerRob_pos#0','soccerRob_teamMarker#0','soccerRob_IDMarker#0','leftMotor#0','rightMotor#0', 'soccerRob_dyn#0')
+        self.pinkRob.simConnect(self.clientID,'soccerRob_pos#1','soccerRob_teamMarker#1','soccerRob_IDMarker#1','leftMotor#1','rightMotor#1', 'soccerRob_dyn#1')
 
         if self.redRob.simCheckConnection():
             print('RedRob ready to play!')
@@ -54,14 +58,19 @@ class StrategyTesting:
         self.arrayFunctions[1].simGetPose('infLeft_cornor')
         self.arrayFunctions[2].simGetPose('infLeft_cornor')
         self.ball.simGetPose('infLeft_cornor')
-        action.screenOutBall(self.arrayFunctions[0],self.ball,10,False,90,30)
-        arraySideCrossing, flagCrossing = action.verifyCrossing(self.arrayFunctions[2], self.ball, True, self.arrayFunctions[1], self.arrayFunctions[0])
+        #action.screenOutBall(self.arrayFunctions[0],self.ball,10,False,90,30)
+        #action.directGoal(self.arrayFunctions[2], self.ball, True, self.arrayFunctions[1], self.arrayFunctions[0])
+        self.IMUgreenRob.simulateIMU()
+
+
+
+        '''arraySideCrossing, flagCrossing = action.verifyCrossing(self.arrayFunctions[2], self.ball, True, self.arrayFunctions[1], self.arrayFunctions[0])
         if(not flagCrossing):#If the robot not crossed
             action.directGoal(self.arrayFunctions[2], self.ball, True, self.arrayFunctions[1], self.arrayFunctions[0])
             action.protectGoal(self.arrayFunctions[1],self.ball,50)
         else:
             action.ballCrossing(self.arrayFunctions[2], self.ball, arraySideCrossing, True, self.arrayFunctions[1], self.arrayFunctions[0])
-            self.arrayFunctions = action.positionChange(self.arrayFunctions, self.ball, arraySideCrossing)
+            self.arrayFunctions = action.positionChange(self.arrayFunctions, self.ball, arraySideCrossing)'''
 
 
 
