@@ -1,7 +1,7 @@
 from numpy import pi,array_equal,array,tan
 from simClasses import Ball,Robot,Target,Obstacle
 import action
-from time import sleep
+from time import sleep, time
 import imu
 
 class StrategyTesting:
@@ -58,8 +58,13 @@ class StrategyTesting:
         self.arrayFunctions[1].simGetPose('infLeft_cornor')
         self.arrayFunctions[2].simGetPose('infLeft_cornor')
         self.ball.simGetPose('infLeft_cornor')
+
+
+        action.girar(self.arrayFunctions[2])
         #action.screenOutBall(self.arrayFunctions[0],self.ball,10,False,90,30)
         #action.directGoal(self.arrayFunctions[2], self.ball, True, self.arrayFunctions[1], self.arrayFunctions[0])
+
+
         self.IMUgreenRob.simulateIMU()
 
 

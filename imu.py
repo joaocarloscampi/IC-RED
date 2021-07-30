@@ -153,6 +153,34 @@ class IMU:
         self.gammaFilter = self.dataSensor[5]
 
 
+    def getDataSensors(self):
+        '''
+            Função que obtem os dados do sensores Acelerometro e Giroscópio no
+            robô móvel de uma vez só
+            Obs: int_aux, string_aux e buffer_aux são variaveis temporarias
+                 apenas para o funcionamento do comando CallScriptFunction
+        '''
+
+
+        emptyBuff = bytearray()                 # bytearray para captura de dados (auxiliar apenas)
+        self.resDataSensors, int_aux, data, string_aux, buffer_aux = sim.simxCallScriptFunction(self.clientID, 'soccerRob_dyn#0', sim.sim_scripttype_childscript,'testeDados', [], [], [], emptyBuff, sim.simx_opmode_blocking)
+        if self.resDataSensors != 0:
+            print("Há algo errado com a captura de dados dos sensores!")
+
+
+        self.accelSensor[0] = data[0]           # Dados [x, y, z] do acelerometro
+        self.accelSensor[1] = data[1]
+        self.accelSensor[2] = data[2]
+        self.GyroSensor[0] = data[3]            # Dados [x, y, z] do giroscópio
+        self.GyroSensor[1] = data[4]
+        self.GyroSensor[2] = data[5]
+
+
+        self.nowTime = data[6]                  # Tempo de simulação
+        self.dt = (self.nowTime-self.lastTime)  # Intervalo de tempo
+        self.lastTime = self.nowTime            # Atualização do tempo anterior
+
+
     def updateAngles(self):
         '''
             Função que obtem os angulos alpha, beta e gamma do robô na simulação,
@@ -361,12 +389,18 @@ class IMU:
         '''
             Função que reune todas as chamadas de informação na IMU
         '''
-        #self.updateAngles()
+        #Obs: Se quiser plotar o angulo de Euler, usar a getGyroscope
+
+
+        self.updateAngles()                 # Funções extras
         self.getVelocity()
-        self.getAccelerometer()
-        self.getGyroscope()
-        self.accelSimulate(flagPlot = True)
-        self.gyroSimulate(flagPlot = True)
+
+
+        #self.getAccelerometer()
+        #self.getGyroscope()
+        self.getDataSensors()
+        self.accelSimulate(flagPlot = False)
+        self.gyroSimulate(flagPlot = False)
         #self.lagrangeInterpolation()
 
 
