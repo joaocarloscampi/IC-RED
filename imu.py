@@ -1,4 +1,4 @@
-from numpy import arctan2,pi,sqrt,cos,sin,array,matmul,amin,where,zeros,delete,append,    random, sort, float32
+from numpy import arctan2,pi,sqrt,cos,sin,array,matmul,amin,where,zeros,delete,append,    random, sort, float32, rad2deg, deg2rad
 import matplotlib.pyplot as plt
 import sim,simConst
 
@@ -26,11 +26,11 @@ class IMU:
         self.beta=0                         # Angulo de rotação em relação a Y
         self.gamma=0                        # Angulo de rotação em relação a Z
         self.streamAngle = False
-        self.simulateTime = 50              # Tempo de simulação para plotar os dados
+        self.simulateTime = 500              # Tempo de simulação para plotar os dados
 
         # Giroscópio
-        self.SIGMA_g = [0.1105 * (pi/180)**2, 0.0760 * (pi/180)**2, 0.1170 * (pi/180)**2]       # Valores [x, y, z] de sigma_g
-        self.SIGMA_bg = [12.6653 * (pi/180)**2, 14.7800 * (pi/180)**2, 0.5600 * (pi/180)**2]    # Valores [x, y, z] de sigma_bg
+        self.SIGMA_g = [0.1105 , 0.0760 , 0.1170 ]       # Valores [x, y, z] de sigma_g
+        self.SIGMA_bg = [12.6653 , 14.7800 , 0.5600 ]    # Valores [x, y, z] de sigma_bg
         self.TAU_g = [1759.07, 1621.95, 1093.75]                                                # Valores [x, y, z] de tau_g
 
         self.b_g_last = [0, 0, 0]           # Valores [x, y, z] do ultimo calculo de b_g
@@ -275,28 +275,31 @@ class IMU:
         self.bPonto_g = [0, 0, 0]
         self.b_g = [0, 0, 0]
 
-        print(self.dt)
+        #print(self.dt)
         # Calcula o ruído e o bias para os 3 eixos do giroscópio
         for i in range(3):
-            self.w_bg[i] = self.SIGMA_bg[i] * random.randn()
-            self.w_g[i] = self.SIGMA_g[i] * random.randn()
+            self.w_bg[i] = sqrt(self.SIGMA_bg[i]) * random.randn()
+            self.w_g[i] = sqrt(self.SIGMA_g[i]) * random.randn()
             self.bPonto_g[i] = - (1/self.TAU_g[i]) * self.w_bg[i]
             self.b_g[i] = self.b_g_last[i] + self.dt*self.bPonto_g[i]
             self.b_g_last[i] = self.b_g[i]
-            #print(self.dt*self.b_g[i])
-
+            #print(self.b_g[i])
 
 
             #Incorpora o ruído nos dados do sensor
-            self.GyroSensorSimulate[i] = self.GyroSensor[i] + self.w_g[i] + self.b_g[i]        # Adicionando ruído branco e bias no dado do sensor
+            self.GyroSensorSimulate[i] = deg2rad(rad2deg(self.GyroSensor[i]) + self.w_g[i] + self.b_g[i])        # Adicionando ruído branco e bias no dado do sensor
             #print("self.accelSensorSimulate[i]: " + str(self.w_a[2]))
 
         #Plota os gráficos
         if flagPlot:                                                            # Verifica a flag parametro da função
             self.timeGyro.append(self.nowTime)                                  # Salva o tempo de leitura
-            self.dataGamma.append(self.gamma)
-            self.dataGammaFilter.append(self.gammaFilter)
-            #print(self.nowTime)
+
+            # DESCOMENTAR SE OLHAR O COMPORTAMENTO DOS ANGULOS
+
+            #self.dataGamma.append(self.gamma)
+            #self.dataGammaFilter.append(self.gammaFilter)
+
+            print(self.nowTime)
             for i in range(3):
                 self.gyro[i].append(self.GyroSensor[i])                         # Salvando dados do Giroscópio
                 self.simGyro[i].append(self.GyroSensorSimulate[i])
@@ -315,22 +318,22 @@ class IMU:
                 plt.figure(figsize=(16,8))
                 #plt.plot(self.timeGyro, self.gyro[0], label = 'Valores X sem ruído')
                 #plt.plot(self.timeGyro, self.gyro[1], label = 'Valores Y sem ruído')
-                plt.plot(self.timeGyro, self.gyro[2], '.', label = 'Valores Z sem ruído')
-                plt.plot(self.timeGyro, self.gyroFiltered[2], '.', label = 'Valores Z sem ruído filtro passa-baixa')
+                ##plt.plot(self.timeGyro, self.gyro[2], '.', label = 'Valores Z sem ruído')
+                ##plt.plot(self.timeGyro, self.gyroFiltered[2], '.', label = 'Valores Z sem ruído filtro passa-baixa')
                 #plt.plot(self.timeGyro, self.simGyro[0], label = 'Valores X com ruído')
                 #plt.plot(self.timeGyro, self.simGyro[1], label = 'Valores Y com ruído')
-                ##plt.plot(self.timeGyro, self.simGyro[2], label = 'Valores Z com ruído')
+                plt.plot(self.timeGyro, self.simGyro[2], label = 'Valores Z com ruído')
                 ##plt.plot(self.timeGyro, self.simGyroFiltered[2], label = 'Valores Z com ruído filtro passa-baixa')
                 plt.title("Giroscópio")
                 plt.legend()
-                plt.show(block=False)
+                #plt.show(block=False)
 
 
-                plt.figure(figsize=(16,8))
-                plt.plot(self.timeGyro, self.dataGammaFilter, '.', label = 'Valores gamma Filtrados')
-                plt.plot(self.timeGyro, self.dataGamma, '.', label = 'Valores gamma')
-                plt.title("Euler angles")
-                plt.legend()
+                #plt.figure(figsize=(16,8))
+                #plt.plot(self.timeGyro, self.dataGammaFilter, '.', label = 'Valores gamma Filtrados')
+                #plt.plot(self.timeGyro, self.dataGamma, '.', label = 'Valores gamma')
+                #plt.title("Euler angles")
+                #plt.legend()
                 plt.show()
                 self.plotData = True
 
@@ -400,7 +403,7 @@ class IMU:
         #self.getGyroscope()
         self.getDataSensors()
         self.accelSimulate(flagPlot = False)
-        self.gyroSimulate(flagPlot = False)
+        self.gyroSimulate(flagPlot = True)
         #self.lagrangeInterpolation()
 
 

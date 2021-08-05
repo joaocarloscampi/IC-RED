@@ -299,4 +299,4 @@ def positionChange(arrayFunctions, ball, arraySideCrossing, leftSide = True):
     return arrayFunctions
 
 def girar(robot):
-    robot.simSetVel(0, 4)
+    robot.simSetVel(0, 0)

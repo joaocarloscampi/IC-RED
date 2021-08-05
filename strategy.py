@@ -4,6 +4,8 @@ import action
 from time import sleep, time
 import imu
 
+from talker import Publisher
+
 class StrategyTesting:
     def __init__(self):
         self.ball=Ball()
@@ -52,15 +54,17 @@ class StrategyTesting:
             i+=1
         print(i,'tentativas até pegar as posições\n')
 
+        self.publisher = Publisher()                                            # Instancia do objeto Publisher ROS
+        self.publisher.startPublisher()                                         # Inicio do Publisher
 
     def play(self):
-        self.arrayFunctions[0].simGetPose('infLeft_cornor')
-        self.arrayFunctions[1].simGetPose('infLeft_cornor')
-        self.arrayFunctions[2].simGetPose('infLeft_cornor')
+        self.pinkRob.simGetPose('infLeft_cornor')
+        self.redRob.simGetPose('infLeft_cornor')
+        self.greenRob.simGetPose('infLeft_cornor')
         self.ball.simGetPose('infLeft_cornor')
 
 
-        action.girar(self.arrayFunctions[2])
+        action.girar(self.greenRob)
         #action.screenOutBall(self.arrayFunctions[0],self.ball,10,False,90,30)
         #action.directGoal(self.arrayFunctions[2], self.ball, True, self.arrayFunctions[1], self.arrayFunctions[0])
 
@@ -68,14 +72,11 @@ class StrategyTesting:
         self.IMUgreenRob.simulateIMU()
 
 
-
-        '''arraySideCrossing, flagCrossing = action.verifyCrossing(self.arrayFunctions[2], self.ball, True, self.arrayFunctions[1], self.arrayFunctions[0])
-        if(not flagCrossing):#If the robot not crossed
-            action.directGoal(self.arrayFunctions[2], self.ball, True, self.arrayFunctions[1], self.arrayFunctions[0])
-            action.protectGoal(self.arrayFunctions[1],self.ball,50)
-        else:
-            action.ballCrossing(self.arrayFunctions[2], self.ball, arraySideCrossing, True, self.arrayFunctions[1], self.arrayFunctions[0])
-            self.arrayFunctions = action.positionChange(self.arrayFunctions, self.ball, arraySideCrossing)'''
+        position = [self.greenRob.xPos, self.greenRob.yPos, self.greenRob.zPos]
+        t1 = time()
+        self.publisher.talkerSimulator(self.IMUgreenRob.nowTime, self.greenRob.quaternion, self.IMUgreenRob.GyroSensor, self.IMUgreenRob.accelSensor, position)
+        t2 = time()
+        print("Tempo de publisher: ",t2-t1)
 
 
 
