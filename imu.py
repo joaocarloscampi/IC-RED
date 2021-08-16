@@ -26,11 +26,11 @@ class IMU:
         self.beta=0                         # Angulo de rotação em relação a Y
         self.gamma=0                        # Angulo de rotação em relação a Z
         self.streamAngle = False
-        self.simulateTime = 500              # Tempo de simulação para plotar os dados
+        self.simulateTime = 600              # Tempo de simulação para plotar os dados
 
         # Giroscópio
-        self.SIGMA_g = [0.1105 , 0.0760 , 0.1170 ]       # Valores [x, y, z] de sigma_g
-        self.SIGMA_bg = [12.6653 , 14.7800 , 0.5600 ]    # Valores [x, y, z] de sigma_bg
+        self.VAR_g = [0.1105 , 0.0760 , 0.1170 ]       # Valores [x, y, z] de VAR_g
+        self.VAR_bg = [12.6653 , 14.7800 , 0.5600 ]    # Valores [x, y, z] de VAR_bg
         self.TAU_g = [1759.07, 1621.95, 1093.75]                                                # Valores [x, y, z] de tau_g
 
         self.b_g_last = [0, 0, 0]           # Valores [x, y, z] do ultimo calculo de b_g
@@ -53,8 +53,8 @@ class IMU:
         self.plotData = False               #      flag para plotar os dados na função de simulação
 
         # Acelerometro
-        self.SIGMA_a = [0.0040, 0.0036, 0.0024]     # Valores [x, y, z] de sigma_a
-        self.SIGMA_ba = [0.0003, 0.0100, 0.0050]    # Valores [x, y, z] de sigma_ba
+        self.VAR_a = [0.0040, 0.0036, 0.0024]     # Valores [x, y, z] de VAR_a
+        self.VAR_ba = [0.0003, 0.0100, 0.0050]    # Valores [x, y, z] de VAR_ba
         self.TAU_a = [242.24, 4132.23, 4444.44]     # Valores [x, y, z] de tau_a
 
         self.b_a_last = [0, 0, 0]           # Valores [x, y, z] do ultimo calculo de b_a
@@ -99,7 +99,7 @@ class IMU:
             self.resAccData, self.accel_data = sim.simxGetFloatSignal(self.clientID, 'accelerometerX', opmstream)
             self.simStream = True
         else:
-            self.resVL, self.linearVelocity, self.angularVelocity=sim.simxGetObjectVelocity(self.clientID, self.robot.soccerRob, opmbuffer)
+            self.resVL, selfhttps://colab.research.google.com/notebooks/welcome.ipynb?hl=pt-BR.linearVelocity, self.angularVelocity=sim.simxGetObjectVelocity(self.clientID, self.robot.soccerRob, opmbuffer)
             self.resAccData, self.accel_data = sim.simxGetFloatSignal(self.clientID, 'accelerometerX', opmstream)
             self.simStream = True
         if(self.resVL != 0 and self.resVL != 1):
@@ -219,8 +219,8 @@ class IMU:
 
         # Calcula o ruído e o bias para os 3 eixos do giroscópio
         for i in range(3):
-            self.w_bg[i] = self.SIGMA_bg[i] * random.randn()
-            self.w_g[i] = self.SIGMA_g[i] * random.randn()
+            self.w_bg[i] = self.VAR_bg[i] * random.randn()
+            self.w_g[i] = self.VAR_g[i] * random.randn()
             self.bPonto_g[i] = - (1/self.TAU_g[i]) * self.w_bg[i]
             self.b_g[i] = self.b_g_last[i] + self.dt*self.bPonto_g[i]
 
@@ -275,13 +275,14 @@ class IMU:
         self.bPonto_g = [0, 0, 0]
         self.b_g = [0, 0, 0]
 
-        #print(self.dt)
+        print(self.dt)
         # Calcula o ruído e o bias para os 3 eixos do giroscópio
         for i in range(3):
-            self.w_bg[i] = sqrt(self.SIGMA_bg[i]) * random.randn()
-            self.w_g[i] = sqrt(self.SIGMA_g[i]) * random.randn()
-            self.bPonto_g[i] = - (1/self.TAU_g[i]) * self.w_bg[i]
-            self.b_g[i] = self.b_g_last[i] + self.dt*self.bPonto_g[i]
+            self.w_bg[i] = sqrt(self.VAR_bg[i]) * random.randn()
+            self.w_g[i] = sqrt(self.VAR_g[i]) * random.randn()
+            #self.bPonto_g[i] = - (1/self.TAU_g[i]) * self.w_bg[i]
+            #self.b_g[i] = self.b_g_last[i] + self.dt*self.bPonto_g[i]
+            self.b_g[i] = self.dt*( -1/self.TAU_g[i] * self.b_g_last[i]  + self.w_bg[i] ) + self.b_g_last[i]
             self.b_g_last[i] = self.b_g[i]
             #print(self.b_g[i])
 
@@ -316,17 +317,21 @@ class IMU:
 
             if (self.nowTime > self.simulateTime) and (not self.plotData):
                 plt.figure(figsize=(16,8))
-                #plt.plot(self.timeGyro, self.gyro[0], label = 'Valores X sem ruído')
-                #plt.plot(self.timeGyro, self.gyro[1], label = 'Valores Y sem ruído')
-                ##plt.plot(self.timeGyro, self.gyro[2], '.', label = 'Valores Z sem ruído')
-                ##plt.plot(self.timeGyro, self.gyroFiltered[2], '.', label = 'Valores Z sem ruído filtro passa-baixa')
-                #plt.plot(self.timeGyro, self.simGyro[0], label = 'Valores X com ruído')
-                #plt.plot(self.timeGyro, self.simGyro[1], label = 'Valores Y com ruído')
+                plt.plot(self.timeGyro, self.gyro[0], label = 'Valores X sem ruído')
+                plt.plot(self.timeGyro, self.gyro[1], label = 'Valores Y sem ruído')
+                plt.plot(self.timeGyro, self.gyro[2], '.', label = 'Valores Z sem ruído')
+                plt.title("Giroscópio sem ruído")
+                plt.legend()
+                plt.show(block=False)
+
+                plt.figure(figsize=(16,8))
+                plt.plot(self.timeGyro, self.simGyro[0], label = 'Valores X com ruído')
+                plt.plot(self.timeGyro, self.simGyro[1], label = 'Valores Y com ruído')
                 plt.plot(self.timeGyro, self.simGyro[2], label = 'Valores Z com ruído')
-                ##plt.plot(self.timeGyro, self.simGyroFiltered[2], label = 'Valores Z com ruído filtro passa-baixa')
+
                 plt.title("Giroscópio")
                 plt.legend()
-                #plt.show(block=False)
+                plt.show(block=False)
 
 
                 #plt.figure(figsize=(16,8))
@@ -334,6 +339,13 @@ class IMU:
                 #plt.plot(self.timeGyro, self.dataGamma, '.', label = 'Valores gamma')
                 #plt.title("Euler angles")
                 #plt.legend()
+
+                plt.figure(figsize=(16,8))
+                plt.plot(self.timeGyro, self.simGyroFiltered[0], label = 'Valores Z com ruído filtro passa-baixa')
+                plt.plot(self.timeGyro, self.simGyroFiltered[1], label = 'Valores Z com ruído filtro passa-baixa')
+                plt.plot(self.timeGyro, self.simGyroFiltered[2], label = 'Valores Z com ruído filtro passa-baixa')
+                plt.title("Giroscópio com filtro")
+                plt.legend()
                 plt.show()
                 self.plotData = True
 
@@ -353,10 +365,11 @@ class IMU:
 
         # Calcula o ruído e o bias para os 3 eixos do acelerometro
         for i in range(3):
-            self.w_ba[i] = sqrt(self.SIGMA_ba[i]) * random.randn()
-            self.w_a[i] = sqrt(self.SIGMA_a[i]) * random.randn()
-            self.bPonto_a[i] = - (1/self.TAU_a[i]) * self.w_ba[i]
-            self.b_a[i] = self.b_a_last[i] + self.dt*self.bPonto_a[i]
+            self.w_ba[i] = sqrt(self.VAR_ba[i]) * random.randn()
+            self.w_a[i] = sqrt(self.VAR_a[i]) * random.randn()
+            #self.bPonto_a[i] = - (1/self.TAU_a[i]) * self.w_ba[i]
+            #self.b_a[i] = self.b_a_last[i] + self.dt*self.bPonto_a[i]
+            self.b_a[i] = self.dt*( -1/self.TAU_a[i] * self.b_a_last[i]  + self.w_ba[i] ) + self.b_a_last[i]
             self.b_a_last[i] = self.b_a[i]
             #print(self.b_a[i])
 
@@ -402,7 +415,7 @@ class IMU:
         #self.getAccelerometer()
         #self.getGyroscope()
         self.getDataSensors()
-        self.accelSimulate(flagPlot = False)
+        self.accelSimulate(flagPlot = True)
         self.gyroSimulate(flagPlot = True)
         #self.lagrangeInterpolation()
 
