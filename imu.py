@@ -99,7 +99,7 @@ class IMU:
             self.resAccData, self.accel_data = sim.simxGetFloatSignal(self.clientID, 'accelerometerX', opmstream)
             self.simStream = True
         else:
-            self.resVL, selfhttps://colab.research.google.com/notebooks/welcome.ipynb?hl=pt-BR.linearVelocity, self.angularVelocity=sim.simxGetObjectVelocity(self.clientID, self.robot.soccerRob, opmbuffer)
+            self.resVL, self.linearVelocity, self.angularVelocity=sim.simxGetObjectVelocity(self.clientID, self.robot.soccerRob, opmbuffer)
             self.resAccData, self.accel_data = sim.simxGetFloatSignal(self.clientID, 'accelerometerX', opmstream)
             self.simStream = True
         if(self.resVL != 0 and self.resVL != 1):
