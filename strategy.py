@@ -3,8 +3,9 @@ from simClasses import Ball,Robot,Target,Obstacle
 import action
 from time import sleep, time
 import imu
-
 from talker import Publisher
+
+from path import Path
 
 class StrategyTesting:
     def __init__(self):
@@ -56,6 +57,7 @@ class StrategyTesting:
 
         self.publisher = Publisher()                                            # Instancia do objeto Publisher ROS
         self.publisher.startPublisher()                                         # Inicio do Publisher
+        self.path = Path(self.IMUgreenRob)
 
     def play(self):
         self.pinkRob.simGetPose('infLeft_cornor')
@@ -64,7 +66,8 @@ class StrategyTesting:
         self.ball.simGetPose('infLeft_cornor')
 
 
-        action.girar(self.greenRob)
+        #action.girar(self.greenRob)
+        self.path.path1()
         #action.screenOutBall(self.arrayFunctions[0],self.ball,10,False,90,30)
         #action.directGoal(self.arrayFunctions[2], self.ball, True, self.arrayFunctions[1], self.arrayFunctions[0])
 
@@ -73,10 +76,12 @@ class StrategyTesting:
 
 
         position = [self.greenRob.xPos, self.greenRob.yPos, self.greenRob.zPos]
-        t1 = time()
-        self.publisher.talkerSimulator(self.IMUgreenRob.nowTime, self.greenRob.quaternion, self.IMUgreenRob.GyroSensor, self.IMUgreenRob.accelSensor, position)
-        t2 = time()
-        print("Tempo de publisher: ",t2-t1)
+        covarianceAccel = [self.IMUgreenRob.VAR_a[0], 0, 0, 0, self.IMUgreenRob.VAR_a[1], 0, 0, 0, self.IMUgreenRob.VAR_a[2]]
+        covarianceGyro = [self.IMUgreenRob.VAR_g[0], 0, 0, 0, self.IMUgreenRob.VAR_g[1], 0, 0, 0, self.IMUgreenRob.VAR_g[2]]
+        ##t1 = time()
+        self.publisher.talkerSimulator(self.IMUgreenRob.nowTime, self.greenRob.quaternion, self.IMUgreenRob.GyroSensor, covarianceGyro, self.IMUgreenRob.accelSensor, covarianceAccel, position)
+        ##t2 = time()
+        ##print("Tempo de publisher: ",t2-t1)
 
 
 

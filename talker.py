@@ -33,7 +33,7 @@ class Publisher():
         rospy.init_node('Simulator', anonymous=True)                            # Inicia o nó do sistema
 
 
-    def talkerSimulator(self, time, quaternion, angular_velocity, linear_acceleration, position):
+    def talkerSimulator(self, time, quaternion, angular_velocity, covarianceGyro, linear_acceleration, covarianceAccel, position):
         '''
             Função que publica os dados recebidos como parametros nas mensagens
             IMU e PoseStamped no ROS
@@ -66,6 +66,8 @@ class Publisher():
             self.i.orientation = self.q
             self.i.angular_velocity = self.v
             self.i.linear_acceleration = self.a
+            self.i.angular_velocity_covariance = covarianceGyro
+            self.i.linear_acceleration_covariance = covarianceAccel
 
 
             rospy.loginfo(self.i)

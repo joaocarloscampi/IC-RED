@@ -415,8 +415,8 @@ class IMU:
         #self.getAccelerometer()
         #self.getGyroscope()
         self.getDataSensors()
-        self.accelSimulate(flagPlot = True)
-        self.gyroSimulate(flagPlot = True)
+        self.accelSimulate(flagPlot = False)
+        self.gyroSimulate(flagPlot = False)
         #self.lagrangeInterpolation()
 
 
