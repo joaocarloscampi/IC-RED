@@ -8,7 +8,7 @@ class ZeroVelocity:
         self.imu = imu                                                          # Objeto da classe IMU que fornecerá os dados
 
 
-        self.N = 5                                                              # Constante N
+        self.N = 10                                                              # Constante N
         self.g = 9.81                                                           # Constante aceleração da gravidade
         self.var_a = 1                                                          # Constante variância do acelerometro
         self.var_w = 1                                                          # Constante variância do giroscópio
@@ -18,11 +18,6 @@ class ZeroVelocity:
         self.yn_w = [0, 0, 0]                                                   # Vetor da média das posições de yk do giroscópio
         self.gammaLinha = 0.01                                                  # Constante de detecção de velocidade zero
         self.gamma = 0                                                          # Valores calculados pelo algoritmo para comparar com gaamaLinha
-
-        self.gammaList = []
-        self.timeList = []
-        self.accelerationList = []
-        self.angularList = []
 
 
     # FUNÇÕES AUXILIARES
@@ -84,7 +79,7 @@ class ZeroVelocity:
 
     # FUNÇÃO PRINCIPAL
 
-    def ZeroVelocity(self):
+    def main(self):
         '''
             Notações do artigo e projeto:
             y_k^a -> Valores do acelerometro com ruído gaussiano
@@ -95,6 +90,11 @@ class ZeroVelocity:
 
         sum = 0
         self.getYkVector()
+
+        self.var_w = (self.imu.angular_velocity_covariance[0][0] + self.imu.angular_velocity_covariance[1][1] +
+                      self.imu.angular_velocity_covariance[2][2])/3
+        self.var_a = (self.imu.linear_acceleration_covariance[0][0] + self.imu.linear_acceleration_covariance[1][1] +
+                      self.imu.linear_acceleration_covariance[2][2])/3
 
         if (len(self.yk_a[0]) == self.N and len(self.yk_w[0]) == self.N):
 
@@ -113,23 +113,4 @@ class ZeroVelocity:
                 value = (1/self.var_a) * (self.vectorNorm(vector_a))**2 + (1/self.var_w) * (self.vectorNorm(array(self.yk_w)[:, i]))**2
                 sum = sum + value
 
-            self.timeList.append(self.imu.time)
-            self.gammaList.append(self.gamma)
-            self.accelerationList.append(self.imu.accel[0])
-            self.angularList.append(self.imu.gyro[2])
             self.gamma = sum/self.N
-            print("Gamma: " + str(self.gamma))
-
-
-    def plotData(self):
-        plt.figure(figsize=(16,8))
-        plt.plot(self.timeList, self.gammaList, label = 'Valores gamma')
-        plt.legend()
-        plt.show(block = False)
-
-        plt.figure(figsize=(16,8))
-        plt.plot(self.timeList, self.accelerationList, label = 'Valores accel X')
-        plt.plot(self.timeList, self.angularList, label = 'Valores gyro Z')
-        plt.legend()
-        plt.show()
-        #print(self.timeList)

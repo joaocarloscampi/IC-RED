@@ -39,13 +39,31 @@ class Publisher():
             IMU e PoseStamped no ROS
         '''
 
-
         if not rospy.is_shutdown():
-
-
             self.i = Imu()                                                      # Instancia da mensagem Imu
             self.ps = PoseStamped()                                             # Instancia da mensagem PoseStamped
 
+            #   Calculo:                        tempo
+            #             Se parte inteira de  -------  é diferente da ultima parte inteira, então envia os dados
+            #                                 frequencia
+            if ( int( time / (1/self.rateCamera) ) !=  self.timeIntegerSendCamera): # Verifica se ja é necessário mandar outro frame da camera
+                self.ps.header.stamp.secs = int(time)                           # Preenchendo os atributos de PoseStamped
+                self.ps.header.stamp.nsecs = int((time - int(time))*10**9)
+                self.ps.header.frame_id = 'camera'
+                self.q = Quaternion()
+                self.q.x = quaternion[0]
+                self.q.y = quaternion[1]
+                self.q.z = quaternion[2]
+                self.q.w = quaternion[3]
+                self.ps.pose.orientation = self.q
+                self.ps.pose.position.x = position[0]
+                self.ps.pose.position.y = position[1]
+                self.ps.pose.position.z = position[2]
+
+                rospy.loginfo(self.ps)
+                self.camera_pub.publish(self.ps)                                # Publicando a mensagem PoseStamped
+
+                self.timeIntegerSendCamera = int( time / (1/self.rateCamera) )  # Atualização da variavel de controle da camera
 
             self.i.header.stamp.secs = int(time)                                # Preenchendo os atributos da Imu
             self.i.header.stamp.nsecs = int((time - int(time))*10**9)
@@ -69,32 +87,5 @@ class Publisher():
             self.i.angular_velocity_covariance = covarianceGyro
             self.i.linear_acceleration_covariance = covarianceAccel
 
-
             rospy.loginfo(self.i)
             self.imu_pub.publish(self.i)                                        # Publicando a mensagem Imu
-
-            #   Calculo:                        tempo
-            #             Se parte inteira de  -------  é diferente da ultima parte inteira, então envia os dados
-            #                                 frequencia
-            if ( int( time / (1/self.rateCamera) ) !=  self.timeIntegerSendCamera): # Verifica se ja é necessário mandar outro frame da camera
-
-
-                self.ps.header.stamp.secs = int(time)                           # Preenchendo os atributos de PoseStamped
-                self.ps.header.stamp.nsecs = int((time - int(time))*10**9)
-                self.ps.header.frame_id = 'camera'
-                self.q = Quaternion()
-                self.q.x = quaternion[0]
-                self.q.y = quaternion[1]
-                self.q.z = quaternion[2]
-                self.q.w = quaternion[3]
-                self.ps.pose.orientation = self.q
-                self.ps.pose.position.x = position[0]
-                self.ps.pose.position.y = position[1]
-                self.ps.pose.position.z = position[2]
-
-
-                rospy.loginfo(self.ps)
-                self.camera_pub.publish(self.ps)                                # Publicando a mensagem PoseStamped
-
-
-                self.timeIntegerSendCamera = int( time / (1/self.rateCamera) )  # Atualização da variavel de controle da camera
