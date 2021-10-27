@@ -26,6 +26,7 @@ class IMU:
         self.beta=0                         # Angulo de rotação em relação a Y
         self.gamma=0                        # Angulo de rotação em relação a Z
         self.streamAngle = False
+        self.streamVelocity = False
         self.simulateTime = 600              # Tempo de simulação para plotar os dados
 
         # Giroscópio
@@ -96,12 +97,13 @@ class IMU:
         # Medindo a velocidade do robô na simulação
         if(not self.simStream):
             self.resVL, self.linearVelocity, self.angularVelocity=sim.simxGetObjectVelocity(self.clientID, self.robot.soccerRob, opmstream)
-            self.resAccData, self.accel_data = sim.simxGetFloatSignal(self.clientID, 'accelerometerX', opmstream)
-            self.simStream = True
+            self.streamVelocity = True
+            #self.resAccData, self.accel_data = sim.simxGetFloatSignal(self.clientID, 'accelerometerX', opmstream)
+            #self.simStream = True
         else:
             self.resVL, self.linearVelocity, self.angularVelocity=sim.simxGetObjectVelocity(self.clientID, self.robot.soccerRob, opmbuffer)
-            self.resAccData, self.accel_data = sim.simxGetFloatSignal(self.clientID, 'accelerometerX', opmstream)
-            self.simStream = True
+            #self.resAccData, self.accel_data = sim.simxGetFloatSignal(self.clientID, 'accelerometerX', opmstream)
+            #self.simStream = True
         if(self.resVL != 0 and self.resVL != 1):
             print('Erro durante a obtenção das velocidades \nTurning off the simulation')
             sim.simxFinish(self.clientID)

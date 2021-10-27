@@ -7,8 +7,7 @@ class ZeroVelocity:
 
         self.imu = imu                                                          # Objeto da classe IMU que fornecerá os dados
 
-
-        self.N = 10                                                              # Constante N
+        self.N = 50                                                             # Constante N
         self.g = 9.81                                                           # Constante aceleração da gravidade
         self.var_a = 1                                                          # Constante variância do acelerometro
         self.var_w = 1                                                          # Constante variância do giroscópio
@@ -16,12 +15,40 @@ class ZeroVelocity:
         self.yk_w = [[], [], []]                                                # Vetor dos ultimos N dados do giroscópio
         self.yn_a = [0, 0, 0]                                                   # Vetor da média das posições de yk do acelerometro
         self.yn_w = [0, 0, 0]                                                   # Vetor da média das posições de yk do giroscópio
-        self.gammaLinha = 0.01                                                  # Constante de detecção de velocidade zero
+        self.gammaLinha = 12                                                    # Constante de detecção de velocidade zero
         self.gamma = 0                                                          # Valores calculados pelo algoritmo para comparar com gaamaLinha
+        self.stopped = False                                                    # Flag que indica o móvel parado ou não
+
+        self.lastAccel = [0, 0, 0]                                              # Armazena os ultimos dados de aceleração
+        self.saveAccel = [0, 0, 0]                                              # Aceleração sem filtro passa-baixa salva
+        self.filtered = [0, 0, 0]                                               # Aceleração filtrada do filtro passa-baixa
+        self.startFilter = False                                                # Flag que indica o inicio do filtro passa-baixa
 
 
     # FUNÇÕES AUXILIARES
 
+    def lowPassFilter(self, a, xi, x):
+        '''
+            Função de Filtro Passa-Baixa
+        '''
+        return xi*a + (1-a)*x
+
+    def accelFilter(self):
+        '''
+            Função de filtragem dos dados da aceleração para utilização, caso
+            necessário, no algoritmo de velocidade zero.
+        '''
+        if not self.startFilter:                                                # Se o filtro não iniciou ainda
+            for i in range(3):
+                self.lastAccel[i] = self.imu.accel[i]                           # Salva a ultima aceleração medida para cada eixo
+                self.filtered[i] = self.imu.accel[i]                            # Define a aceleração inicial filtrada como a própria lida no sensor
+            self.startFilter = True                                             # Muda a flag pois o filtro foi iniciado
+
+        else:                                                                   # Se o filtro iniciou
+            for i in range(3):
+                self.filtered[i] = self.lowPassFilter(0.8, self.filtered[i], self.imu.accel[i]) # Filtra os dados da aceleração
+                self.saveAccel[i] = self.imu.accel[i]                           # Salva a ultima aceleração medida para cada eixo
+                self.imu.accel[i] = self.filtered[i]                            # Define a aceleração da imu como a calculada pelo filtro em cada eixo
 
     def getYkVector(self):
         '''
@@ -88,6 +115,8 @@ class ZeroVelocity:
             y_k^w -> Valores do giroscópio com ruído gaussiano
         '''
 
+        self.accelFilter()                                                      # Inicio do filtro passa-baixa para os dados do acelerometro
+
         sum = 0
         self.getYkVector()
 
@@ -96,21 +125,27 @@ class ZeroVelocity:
         self.var_a = (self.imu.linear_acceleration_covariance[0][0] + self.imu.linear_acceleration_covariance[1][1] +
                       self.imu.linear_acceleration_covariance[2][2])/3
 
-        if (len(self.yk_a[0]) == self.N and len(self.yk_w[0]) == self.N):
+        #self.var_w = (9.55989356069987e-07 + 6.507957657007658e-07 + 5.603402148024383e-07)/3          # Dados de variancia medidos do celular
+        #self.var_a = (0.00015325799770760437 + 0.000812165221644058 + 0.00018227341330091776)/3
 
-            self.calcYnVector()
+        #self.var_w = 0.0031                                                    # Utilizar esses valores quando a matriz de covariancia não for passada
+        #self.var_a = 0.1050
 
-            for i in range(self.N):
-                ##print("yk_a = " + str(self.yk_a))
-                ##print("yk_a[" + str(i) + "]" + " = " + str(array(self.yk_a)[:, i]))
-                ##print("yn_a = " + str(self.yn_a))
-                ##print("||yn_a|| = " + str(self.vectorNorm(array(self.yk_a)[:, i])))
+        if (len(self.yk_a[0]) == self.N and len(self.yk_w[0]) == self.N):       # Se temos dados suficientes para iniciar
+
+            self.calcYnVector()                                                 # Calculo de Yn
+
+            for i in range(self.N):                                             # Calculo do somatório no artigo
                 vector_a = array(self.yk_a)[:, i] - self.g * ( self.yn_a/self.vectorNorm(array(self.yk_a)[:, i]) )
-                ##print("vector_a = " +str(vector_a))
-                ##print("yk_w = " + str(self.yk_w))
-                ##print("yk_w[" + str(i) + "]" + " = " + str(array(self.yk_w)[:, i]))
-                ##print("------------------------")
                 value = (1/self.var_a) * (self.vectorNorm(vector_a))**2 + (1/self.var_w) * (self.vectorNorm(array(self.yk_w)[:, i]))**2
                 sum = sum + value
 
-            self.gamma = sum/self.N
+            self.gamma = sum/self.N                                             # Calculo de gamma, o T(zn)
+
+        if self.gamma < self.gammaLinha:                                        # Verificação do T(zn)
+            self.stopped = True                                                 # Se for menor, o robô está parado
+        else:
+            self.stopped = False                                                # Se for maior, o robô está em movimento
+
+        for i in range(3):                                                      # Retorno da aceleração original do sensor
+            self.imu.accel[i] = self.saveAccel[i]

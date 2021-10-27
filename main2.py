@@ -1,5 +1,5 @@
 import sim, simConst
-from strategy import StrategyTesting, DrawRedDragons
+from strategy import StrategyTesting
 import time
 
 
