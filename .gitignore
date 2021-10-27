@@ -4,6 +4,6 @@ __pycache__/
 *.bag
 *.tex
 *.csv
-estimeVarianceCell.py
+estimateVarianceCell.py
 plotRealData.py
 teste/
