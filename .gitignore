@@ -2,3 +2,8 @@
 __pycache__/
 *.so
 *.bag
+*.tex
+*.csv
+estimeVarianceCell.py
+plotRealData.py
+teste/
