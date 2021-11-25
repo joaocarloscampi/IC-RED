@@ -70,6 +70,15 @@ class VelocityMeter:
         self.dataGyroX = []
         self.dataGyroY = []
         self.dataGyroZ = []
+
+        self.angXData = []
+        self.angYData = []
+        self.angZData = []
+
+        self.erroX = []
+        self.erroY = []
+        self.erroZ = []
+
         self.time = []
 
     def getData(self, data):
@@ -116,7 +125,8 @@ class VelocityMeter:
 
                                                                                 # Calculo da velocidade linear
         self.velocity.calcLinearVelocity(self.imu.orientation, self.imu.accel, self.zeroVelocity.stopped, self.zeroAcceleration.notAccel, self.imu.time)
-        #self.ECF.main(self.imu.orientation, self.velocity.g, self.imu.gyro)
+                                                                                # Utilização do Filtro Complementar Explicito
+        self.ECF.main(self.imu.orientation, self.velocity.g, self.imu.gyro, self.imu.time-self.lastTime)
 
         self.lastTime = self.imu.time                                           # Atualização do tempo de captura de dados
 
@@ -126,6 +136,7 @@ class VelocityMeter:
         self.plotDataVelocity("Read")
         self.plotDataZeroAccel("Read")
         self.plotDataSensor("Read")
+        self.plotAngZData("Read")
 
     def plotDataGamma(self, status, blockGraph = False):
         '''
@@ -350,6 +361,42 @@ class VelocityMeter:
         #ax6.plot(dataFrame['time'], dataFrame["vz"]/100 , '-.', color = 'orange', label = "Vz")
         plt.show(block = True)
 
+    def plotAngZData(self, status, blockGraph = False):
+        if status == "Read":
+            euler = euler_from_quaternion(self.ECF.q)
+            print(euler)
+            self.angXData.append(euler[0])
+            self.angYData.append(euler[1])
+            self.angZData.append(euler[2])
+            try:
+                self.erroX.append(self.ECF.e[0])
+                self.erroY.append(self.ECF.e[1])
+                self.erroZ.append(self.ECF.e[2])
+            except:
+                self.erroX.append(0)
+                self.erroY.append(0)
+                self.erroZ.append(0)
+        else:
+            fig, axs = plt.subplots(2)
+
+            axs[0].plot(velMet.time, velMet.angZData, label = 'Valores do angulo em Z')
+            axs[0].plot(velMet.time, velMet.angYData, label = 'Valores do angulo em Y')
+            axs[0].plot(velMet.time, velMet.angXData, label = 'Valores do angulo em X')
+            axs[0].set(ylabel='Angulo [rad]')
+            axs[0].grid()
+            axs[0].legend()
+            #velMet.erroZ.pop()
+            #velMet.erroY.pop()
+            #velMet.erroX.pop()
+            #velMet.time.pop()
+            axs[1].plot(velMet.time, velMet.erroZ)
+            axs[1].plot(velMet.time, velMet.erroY)
+            axs[1].plot(velMet.time, velMet.erroX)
+            axs[1].set(ylabel='Erro')
+            axs[1].set(xlabel = 'Tempo [s]')
+            axs[1].grid()
+            plt.show(block = blockGraph)
+
 
 def listener(velMet, topic):
     '''
@@ -376,10 +423,11 @@ if __name__ == '__main__':
     listener(velMet, topic)                                                     # Inicia a comunicação ROS
 
     # Após o código ser executado, as funções de plot são chamadas
-    
+
     #velMet.plotDataGamma("Plot", blockGraph = False)
-    #velMet.plotDataAngleZ("Plot", blockGraph = False)
-    velMet.plotDataVelocity("Plot", blockGraph = True)
+    velMet.plotDataAngleZ("Plot", blockGraph = False)
+    #velMet.plotDataVelocity("Plot", blockGraph = True)
     #velMet.plotDataZeroAccel("Plot", blockGraph = True)
-    #velMet.plotDataSensor("Plot", blockGraph=True)
+    velMet.plotDataSensor("Plot", blockGraph=False)
     #velMet.plotAllData()
+    velMet.plotAngZData("Plot", blockGraph=True)
