@@ -138,7 +138,7 @@ class VelocityMeter:
         self.plotDataVelocity("Read")
         self.plotDataZeroAccel("Read")
         self.plotDataSensor("Read")
-        self.plotAngZData("Read")
+        self.plotAngData("Read")
         self.plotDataAngleSim("Read")
 
     def plotDataGamma(self, status, blockGraph = False):
@@ -389,7 +389,7 @@ class VelocityMeter:
         #ax6.plot(dataFrame['time'], dataFrame["vz"]/100 , '-.', color = 'orange', label = "Vz")
         plt.show(block = True)
 
-    def plotAngZData(self, status, blockGraph = False):
+    def plotAngData(self, status, blockGraph = False):
         '''
             Função utilizada para plotar as orientações e erros obtidos no filtro
             complementar explícito
@@ -469,5 +469,5 @@ if __name__ == '__main__':
     #velMet.plotDataZeroAccel("Plot", blockGraph = True)
     velMet.plotDataSensor("Plot", blockGraph=False)
     #velMet.plotAllData()
-    velMet.plotAngZData("Plot", blockGraph=False)
+    velMet.plotAngData("Plot", blockGraph=False)
     velMet.plotDataAngleSim("Plot", blockGraph=True)
