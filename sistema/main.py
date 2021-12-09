@@ -54,6 +54,8 @@ class VelocityMeter:
         self.accelG = [0, 0, 0]                     # Aceleração sem a Gravidade
 
         self.dataZ = []                             # Dados para utilizar no plot
+        self.dataY = []
+        self.dataX = []
         self.dataGamma = []
         self.dataVelocity = []
         self.dataVx = []
@@ -132,11 +134,12 @@ class VelocityMeter:
 
         self.time.append(self.imu.time)                                         # Atualiação de variaveis para realizar plots
         self.plotDataGamma("Read")
-        self.plotDataAngleZ("Read")
+        #self.plotDataAngleZ("Read")
         self.plotDataVelocity("Read")
         self.plotDataZeroAccel("Read")
         self.plotDataSensor("Read")
         self.plotAngZData("Read")
+        self.plotDataAngleSim("Read")
 
     def plotDataGamma(self, status, blockGraph = False):
         '''
@@ -179,6 +182,31 @@ class VelocityMeter:
             plt.legend()
 
             plt.show(block = blockGraph)
+
+    def plotDataAngleSim(self, status, blockGraph = False):
+        '''
+            (Futuramente será trocada)
+            Função para plotar os dados de angulo em X, Y e Z do robô
+        '''
+
+        if status == "Read":                                                    # Se o modo chamado na função for de leitura "Read"
+            self.dataZ.append(np.rad2deg(self.euler[2]))                                    # Adiciona o angulo em Z
+            self.dataY.append(np.rad2deg(self.euler[1]))
+            self.dataX.append(np.rad2deg(self.euler[0]))
+
+        elif status == "Plot":                                                  # Se o modo chamado na função foi de "Plot"
+            plt.figure(figsize=(16,8))                                          # Configurações de plot no matplotlib
+            plt.plot(velMet.time, velMet.dataZ, label = 'Valores do angulo Z')
+            plt.plot(velMet.time, velMet.dataY, label = 'Valores do angulo Y')
+            plt.plot(velMet.time, velMet.dataX, label = 'Valores do angulo X')
+            plt.legend()
+            plt.xlabel("Tempo [s]")
+            plt.ylabel("Ângulo [ $\degree$ ]")
+            plt.grid()
+
+            plt.show(block = blockGraph)
+
+            #tikzplotlib.save("angleSimulator.tex")
 
     def plotDataSensor(self, status, blockGraph = False):
         '''
@@ -362,40 +390,51 @@ class VelocityMeter:
         plt.show(block = True)
 
     def plotAngZData(self, status, blockGraph = False):
+        '''
+            Função utilizada para plotar as orientações e erros obtidos no filtro
+            complementar explícito
+        '''
         if status == "Read":
             euler = euler_from_quaternion(self.ECF.q)
             print(euler)
-            self.angXData.append(euler[0])
-            self.angYData.append(euler[1])
-            self.angZData.append(euler[2])
+            self.angXData.append(np.rad2deg(euler[0]))
+            self.angYData.append(np.rad2deg(euler[1]))
+            self.angZData.append(np.rad2deg(euler[2]))
             try:
-                self.erroX.append(self.ECF.e[0])
-                self.erroY.append(self.ECF.e[1])
-                self.erroZ.append(self.ECF.e[2])
+                self.erroX.append(np.rad2deg(self.ECF.e[0]))
+                self.erroY.append(np.rad2deg(self.ECF.e[1]))
+                self.erroZ.append(np.rad2deg(self.ECF.e[2]))
             except:
                 self.erroX.append(0)
                 self.erroY.append(0)
                 self.erroZ.append(0)
         else:
-            fig, axs = plt.subplots(2)
+            fig, axs = plt.subplots(1)
 
-            axs[0].plot(velMet.time, velMet.angZData, label = 'Valores do angulo em Z')
-            axs[0].plot(velMet.time, velMet.angYData, label = 'Valores do angulo em Y')
-            axs[0].plot(velMet.time, velMet.angXData, label = 'Valores do angulo em X')
-            axs[0].set(ylabel='Angulo [rad]')
-            axs[0].grid()
-            axs[0].legend()
+            fig.suptitle("Angulo pelo filtro")
+            axs.plot(velMet.time, velMet.angZData, label = 'Valores do angulo em Z')
+            axs.plot(velMet.time, velMet.angYData, label = 'Valores do angulo em Y')
+            axs.plot(velMet.time, velMet.angXData, label = 'Valores do angulo em X')
+            axs.set(ylabel='Angulo [$\degree$]')
+            axs.set(xlabel = 'Tempo [s]')
+            axs.grid()
+            axs.legend()
             #velMet.erroZ.pop()
             #velMet.erroY.pop()
             #velMet.erroX.pop()
             #velMet.time.pop()
-            axs[1].plot(velMet.time, velMet.erroZ)
-            axs[1].plot(velMet.time, velMet.erroY)
-            axs[1].plot(velMet.time, velMet.erroX)
-            axs[1].set(ylabel='Erro')
-            axs[1].set(xlabel = 'Tempo [s]')
-            axs[1].grid()
+            ##tikzplotlib.save("filtroAngulo.tex")
+
+            fig, axs = plt.subplots(1)
+            axs.plot(velMet.time, velMet.erroZ)
+            axs.plot(velMet.time, velMet.erroY)
+            axs.plot(velMet.time, velMet.erroX)
+            axs.set(ylabel='Erro [$\degree$]')
+            axs.set(xlabel = 'Tempo [s]')
+            axs.grid()
             plt.show(block = blockGraph)
+
+            ##tikzplotlib.save("filtroErro.tex")
 
 
 def listener(velMet, topic):
@@ -425,9 +464,10 @@ if __name__ == '__main__':
     # Após o código ser executado, as funções de plot são chamadas
 
     #velMet.plotDataGamma("Plot", blockGraph = False)
-    velMet.plotDataAngleZ("Plot", blockGraph = False)
+    #velMet.plotDataAngleZ("Plot", blockGraph = False)
     #velMet.plotDataVelocity("Plot", blockGraph = True)
     #velMet.plotDataZeroAccel("Plot", blockGraph = True)
     velMet.plotDataSensor("Plot", blockGraph=False)
     #velMet.plotAllData()
-    velMet.plotAngZData("Plot", blockGraph=True)
+    velMet.plotAngZData("Plot", blockGraph=False)
+    velMet.plotDataAngleSim("Plot", blockGraph=True)
