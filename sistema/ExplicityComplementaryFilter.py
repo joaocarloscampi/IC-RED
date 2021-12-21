@@ -1,5 +1,5 @@
 import numpy as np
-from tf.transformations import quaternion_multiply
+from tf.transformations import quaternion_multiply, euler_from_quaternion
 from scipy.linalg import expm
 
 class ECF:
@@ -10,7 +10,8 @@ class ECF:
         self.qHat = [0, 0, 0, 0]        # Quaternio de saida do Filtro
         self.delta = 0                  # Parametro delta controlado via erro pelo Filtro
         self.e = 0                      # Erro entre v_ e vHat
-        self.somaErro = 0
+        self.somaErro = 0               # Erro acumulado
+        self.euler = [0, 0, 0]          # Angulos de euler convertidos do quatérnio
 
         self.Kp = 10                   # Constante de ganho proporcional
         self.Ki = 10                   # Constante de ganho integrativo
@@ -78,6 +79,7 @@ class ECF:
 
         # Atualização do quaternio atual
         self.q[0], self.q[1], self.q[2], self.q[3] = self.qHat[0], self.qHat[1], self.qHat[2], self.qHat[3]
+        self.euler[0], self.euler[1], self.euler[2] = euler_from_quaternion(self.q) # Angulos de Euler (convertidos do quatérnio)
 
     def main(self, orientation, g, angularVelocity, dt):
         '''

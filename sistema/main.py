@@ -5,12 +5,15 @@ import rospy
 from ZeroVelocity import ZeroVelocity
 from ZeroAcceleration import ZeroAcceleration
 from ExplicityComplementaryFilter import ECF
+from complementaryFilter import CF
 from velocity import Velocity
 
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
 import tikzplotlib
+
+import time
 
 from sensor_msgs.msg import Imu
 from geometry_msgs.msg import PoseStamped
@@ -25,22 +28,30 @@ class IMU:
         self.angular_velocity_covariance = []                                   # Armazena a matriz de covariancia do giroscópio
         self.linear_acceleration_covariance = []                                # Armazena a matriz de covariancia do acelerômetro
         self.time = 0                                                           # Armazena o dado de tempo atual das medidas
+        self.euler = [0, 0, 0]
 
 
 class CAMERA:
 
     def __init__(self):
         self.orientation = [0, 0, 0, 0]                                         # Armazena os dados atuais de orientação em quatérnio
+        self.xPos = 0                                                           # Armazena a posição X do robô móvel
+        self.yPos = 0                                                           # Armazena a posição Y do robô móvel
+        self.zPos = 0                                                           # Armazena a posição Z do robô móvel
         self.time = 0                                                           # Armazena o dado de tempo atual das medidas
+        self.dataAvaliable = False
+        self.euler = [0, 0, 0]
 
 
 class VelocityMeter:
     def __init__(self):
         self.imu = IMU()                                                        # Instanciamento de um objeto IMU
+        self.camera = CAMERA()                                                  # Instanciamento de um objeto CAMERA
         self.velocity = Velocity()                                              # Instanciamento de um objeto Velocity - Calculo de velocidade linear
         self.zeroVelocity = ZeroVelocity(self.imu)                              # Instanciamento de um objeto ZeroVelocity - Detecção de Velocidade Zero
         self.zeroAcceleration = ZeroAcceleration(self.imu, self.velocity.g)     # Instanciamento de um objeto ZeroAcceleration - Detecção de Aceleração Zero
         self.ECF = ECF()
+        self.CF = CF()
 
         self.coppelia = -1                          # Variavel para trocar os eixos dos dados vindos do Coppelia: -1 troca, 1 não troca
 
@@ -81,6 +92,12 @@ class VelocityMeter:
         self.erroY = []
         self.erroZ = []
 
+        self.dataAngCF = []
+        self.dataAngIMU = []
+        self.dataCFe = []
+        self.timeCamera = []
+        self.dataCamera = []
+
         self.time = []
 
     def getData(self, data):
@@ -114,6 +131,25 @@ class VelocityMeter:
                                                     [vectorCovLinear[5], vectorCovLinear[7], vectorCovLinear[8]] ]
 
         self.euler[0], self.euler[1], self.euler[2] = euler_from_quaternion(self.imu.orientation) # Angulos de Euler (convertidos do quatérnio)
+        self.imu.euler[0], self.imu.euler[1], self.imu.euler[2] = euler_from_quaternion(self.imu.orientation) # Angulos de Euler (convertidos do quatérnio)
+
+    def camera_callback(self, data):
+        self.camera.xPos = data.pose.position.x
+        self.camera.yPos = data.pose.position.y
+        self.camera.zPos = data.pose.position.z
+
+        self.camera.time = data.header.stamp.secs + data.header.stamp.nsecs*1e-9
+
+        self.camera.orientation[0] = data.pose.orientation.x
+        self.camera.orientation[1] = data.pose.orientation.y
+        self.camera.orientation[2] = data.pose.orientation.z
+        self.camera.orientation[3] = data.pose.orientation.w
+
+        self.camera.euler[0], self.camera.euler[1], self.camera.euler[2] = euler_from_quaternion(self.camera.orientation) # Angulos de Euler (convertidos do quatérnio)
+
+
+        self.dataAvaliable = True
+        #print(data.header.frame_id)
 
     def main(self, data):
         '''
@@ -121,7 +157,6 @@ class VelocityMeter:
             necessárias para estimar a velocidade linear
         '''
         self.getData(data)                                                      # Função que recebe os dados do ROS
-
         self.zeroVelocity.main()                                                # Execução do Algoritmo de Velocidade Zero
         self.zeroAcceleration.main(self.zeroVelocity.stopped, self.velocity.g)  # Execução do Algoritmo de Aceleração Zero
 
@@ -129,6 +164,9 @@ class VelocityMeter:
         self.velocity.calcLinearVelocity(self.imu.orientation, self.imu.accel, self.zeroVelocity.stopped, self.zeroAcceleration.notAccel, self.imu.time)
                                                                                 # Utilização do Filtro Complementar Explicito
         self.ECF.main(self.imu.orientation, self.velocity.g, self.imu.gyro, self.imu.time-self.lastTime)
+
+        self.CF.main(self.ECF.euler[2], self.camera.euler[2], self.imu.time-self.lastTime, self.imu.time, self.camera.time)
+        print('IMU: ', self.imu.euler[2])
 
         self.lastTime = self.imu.time                                           # Atualização do tempo de captura de dados
 
@@ -140,6 +178,9 @@ class VelocityMeter:
         self.plotDataSensor("Read")
         self.plotAngData("Read")
         self.plotDataAngleSim("Read")
+        self.plotCFangle("Read")
+
+        #print(self.CF.phi_f)
 
     def plotDataGamma(self, status, blockGraph = False):
         '''
@@ -396,7 +437,6 @@ class VelocityMeter:
         '''
         if status == "Read":
             euler = euler_from_quaternion(self.ECF.q)
-            print(euler)
             self.angXData.append(np.rad2deg(euler[0]))
             self.angYData.append(np.rad2deg(euler[1]))
             self.angZData.append(np.rad2deg(euler[2]))
@@ -436,8 +476,54 @@ class VelocityMeter:
 
             ##tikzplotlib.save("filtroErro.tex")
 
+    def plotCFangle(self, status, blockGraph = False):
+        '''
+            Função utilizada para plotar a orientação gerada pelo Filtro Complementar
+        '''
+        if status == "Read":
+            self.dataAngCF.append(self.CF.phi_f)
+            self.dataCFe.append(self.CF.e)
+            self.timeCamera.append(self.camera.time)
+            print("Tempo Camera: ", self.camera.time)
+            print("Tempo IMU: ", self.imu.time)
+            self.dataCamera.append(self.camera.euler[2])
+            self.dataAngIMU.append(np.rad2deg(self.imu.euler[2]))
+        else:
+            fig, axs = plt.subplots(1)
 
-def listener(velMet, topic):
+            fig.suptitle("Filtro Complementar (CF)")
+            axs.plot(velMet.time, np.rad2deg(velMet.dataAngCF), label = 'CF')
+            axs.plot(velMet.time, np.rad2deg(velMet.dataCamera), label = 'Camera')
+            axs.set(ylabel='Angulo [$\degree$]')
+            axs.set(xlabel = 'Tempo [s]')
+            axs.grid()
+            axs.legend()
+
+            fig, axs = plt.subplots(1)
+
+            fig.suptitle("Erro no Filtro Complementar")
+            axs.plot(velMet.time, np.rad2deg(velMet.dataCFe), label = 'Erro do CF')
+            axs.set(ylabel='Angulo [$\degree$]')
+            axs.set(xlabel = 'Tempo [s]')
+            axs.grid()
+            axs.legend()
+
+            fig, axs = plt.subplots(1)
+
+            fig.suptitle("Filtro Complementar Explicito (ECF)")
+            axs.plot(velMet.time, velMet.angZData, label = 'ECF')
+            axs.plot(velMet.time, np.rad2deg(velMet.dataCamera), label = 'Camera')
+            #axs.plot(velMet.time, velMet.dataAngIMU, label = 'IMU')
+            axs.set(ylabel='Angulo [$\degree$]')
+            axs.set(xlabel = 'Tempo [s]')
+            axs.grid()
+            axs.legend()
+
+            plt.show(block = blockGraph)
+
+            ##tikzplotlib.save("filtroErro.tex")
+
+def listener(velMet, sensor, camera):
     '''
         Função listener: Função utilizada para conexão no ROS com os tópicos
         passados como parametro na execução do código
@@ -449,7 +535,8 @@ def listener(velMet, topic):
 
     rospy.init_node('reciver', anonymous=True)
 
-    rospy.Subscriber(topic, Imu, velMet.main)
+    rospy.Subscriber(sensor, Imu, velMet.main)
+    rospy.Subscriber(camera, PoseStamped, velMet.camera_callback)
 
     rospy.spin() # spin() simply keeps python from exiting until this node is stopped
 
@@ -458,8 +545,9 @@ if __name__ == '__main__':
 
     velMet = VelocityMeter()                                                    # Instancia o objeto do medidor de velocidade
 
-    topic = sys.argv[1]                                                         # Obtem o nome do topico passado por parametro
-    listener(velMet, topic)                                                     # Inicia a comunicação ROS
+    sensor = sys.argv[1]                                                         # Obtem o nome do topico passado por parametro
+    camera = sys.argv[2]
+    listener(velMet, sensor, camera)                                                     # Inicia a comunicação ROS
 
     # Após o código ser executado, as funções de plot são chamadas
 
@@ -467,7 +555,8 @@ if __name__ == '__main__':
     #velMet.plotDataAngleZ("Plot", blockGraph = False)
     #velMet.plotDataVelocity("Plot", blockGraph = True)
     #velMet.plotDataZeroAccel("Plot", blockGraph = True)
-    velMet.plotDataSensor("Plot", blockGraph=False)
+    #velMet.plotDataSensor("Plot", blockGraph=False)
     #velMet.plotAllData()
-    velMet.plotAngData("Plot", blockGraph=False)
-    velMet.plotDataAngleSim("Plot", blockGraph=True)
+    #velMet.plotAngData("Plot", blockGraph=False)
+    #velMet.plotDataAngleSim("Plot", blockGraph=True)
+    velMet.plotCFangle("Plot", blockGraph=True)
