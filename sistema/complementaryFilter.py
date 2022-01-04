@@ -2,8 +2,8 @@ import numpy as np
 
 class CF:
     def __init__(self):
-        self.Kp = -0.5                  # Ganho proporcional do filtro
-        self.Ki = -3                    # Ganho integrativo do filtro
+        self.Kp = 0.5                  # Ganho proporcional do filtro
+        self.Ki = 3                    # Ganho integrativo do filtro
 
         self.phi_fe = 0                 # Angulo do Filtro Complementar Explícito
         self.phi_v = 0                  # Angulo da Visão Computacional
@@ -19,7 +19,7 @@ class CF:
         '''
             Função para calcular a componente Delta de correção no Filtro
         '''
-        self.e = np.arctan2(np.sin(self.phi_v), np.cos(self.phi_v)) - np.arctan2(np.sin(self.phi_f), np.cos(self.phi_f))
+        self.e =  -1 * np.arctan2(np.sin(self.phi_v), np.cos(self.phi_v)) + np.arctan2(np.sin(self.phi_f), np.cos(self.phi_f))
         self.e = np.arctan2(np.sin(self.e), np.cos(self.e))     # Erro entre o angulo atual e o da visão
         #self.e = self.phi_v - self.phi_f                       # Erro entre o angulo atual e o da visão
         print("Visao: ", self.phi_v)

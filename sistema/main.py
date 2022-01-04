@@ -7,6 +7,7 @@ from ZeroAcceleration import ZeroAcceleration
 from ExplicityComplementaryFilter import ECF
 from complementaryFilter import CF
 from velocity import Velocity
+from angularVelocity import AngularVelocity
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -28,7 +29,7 @@ class IMU:
         self.angular_velocity_covariance = []                                   # Armazena a matriz de covariancia do giroscópio
         self.linear_acceleration_covariance = []                                # Armazena a matriz de covariancia do acelerômetro
         self.time = 0                                                           # Armazena o dado de tempo atual das medidas
-        self.euler = [0, 0, 0]
+        self.euler = [0, 0, 0]                                                  # Armazena a orientação [x, y, z] em angulos de euler
 
 
 class CAMERA:
@@ -39,8 +40,8 @@ class CAMERA:
         self.yPos = 0                                                           # Armazena a posição Y do robô móvel
         self.zPos = 0                                                           # Armazena a posição Z do robô móvel
         self.time = 0                                                           # Armazena o dado de tempo atual das medidas
-        self.dataAvaliable = False
-        self.euler = [0, 0, 0]
+        self.dataAvaliable = False                                              # Flag para controle de dados da visão
+        self.euler = [0, 0, 0]                                                  # Armazena a orientação [x, y, z] em angulos de euler
 
 
 class VelocityMeter:
@@ -50,8 +51,9 @@ class VelocityMeter:
         self.velocity = Velocity()                                              # Instanciamento de um objeto Velocity - Calculo de velocidade linear
         self.zeroVelocity = ZeroVelocity(self.imu)                              # Instanciamento de um objeto ZeroVelocity - Detecção de Velocidade Zero
         self.zeroAcceleration = ZeroAcceleration(self.imu, self.velocity.g)     # Instanciamento de um objeto ZeroAcceleration - Detecção de Aceleração Zero
-        self.ECF = ECF()
-        self.CF = CF()
+        self.ECF = ECF()                                                        # Instanciamento de um objeto ECF - Filtro Complementar Explícito
+        self.CF = CF()                                                          # Instanciamento de um objeto CF - Filtro Complementar
+        self.angularVelocity = AngularVelocity()                                # Instanciamento de um objeto AngularVelocity - Calculo da velocidade angular
 
         self.coppelia = -1                          # Variavel para trocar os eixos dos dados vindos do Coppelia: -1 troca, 1 não troca
 
@@ -100,6 +102,9 @@ class VelocityMeter:
 
         self.time = []
 
+        self.angularVelCF = []
+        self.angularVelCF_filtered = []
+
     def getData(self, data):
         '''
             Função que resgata os dados publicados no Tópico selecionado
@@ -134,22 +139,20 @@ class VelocityMeter:
         self.imu.euler[0], self.imu.euler[1], self.imu.euler[2] = euler_from_quaternion(self.imu.orientation) # Angulos de Euler (convertidos do quatérnio)
 
     def camera_callback(self, data):
-        self.camera.xPos = data.pose.position.x
+        self.camera.xPos = data.pose.position.x                                 # Posição [x, y, z]
         self.camera.yPos = data.pose.position.y
         self.camera.zPos = data.pose.position.z
 
-        self.camera.time = data.header.stamp.secs + data.header.stamp.nsecs*1e-9
+        self.camera.time = data.header.stamp.secs + data.header.stamp.nsecs*1e-9 # Tempo de captura dos dados
 
-        self.camera.orientation[0] = data.pose.orientation.x
+        self.camera.orientation[0] = data.pose.orientation.x                    # Orientação em quatérnio [x, y, z, w]
         self.camera.orientation[1] = data.pose.orientation.y
         self.camera.orientation[2] = data.pose.orientation.z
         self.camera.orientation[3] = data.pose.orientation.w
 
         self.camera.euler[0], self.camera.euler[1], self.camera.euler[2] = euler_from_quaternion(self.camera.orientation) # Angulos de Euler (convertidos do quatérnio)
 
-
-        self.dataAvaliable = True
-        #print(data.header.frame_id)
+        self.dataAvaliable = True                                               # Flag para o fluxo de dados da camera
 
     def main(self, data):
         '''
@@ -162,11 +165,14 @@ class VelocityMeter:
 
                                                                                 # Calculo da velocidade linear
         self.velocity.calcLinearVelocity(self.imu.orientation, self.imu.accel, self.zeroVelocity.stopped, self.zeroAcceleration.notAccel, self.imu.time)
+
                                                                                 # Utilização do Filtro Complementar Explicito
         self.ECF.main(self.imu.orientation, self.velocity.g, self.imu.gyro, self.imu.time-self.lastTime)
 
+                                                                                # Utilização do Filtro Complementar
         self.CF.main(self.ECF.euler[2], self.camera.euler[2], self.imu.time-self.lastTime, self.imu.time, self.camera.time)
-        print('IMU: ', self.imu.euler[2])
+
+        self.angularVelocity.main(self.imu.time-self.lastTime, self.CF.phi_f)   # Calculo da velocidade angular pelo filtro complementar
 
         self.lastTime = self.imu.time                                           # Atualização do tempo de captura de dados
 
@@ -179,8 +185,8 @@ class VelocityMeter:
         self.plotAngData("Read")
         self.plotDataAngleSim("Read")
         self.plotCFangle("Read")
+        self.plotCFvelocity("Read")
 
-        #print(self.CF.phi_f)
 
     def plotDataGamma(self, status, blockGraph = False):
         '''
@@ -208,6 +214,7 @@ class VelocityMeter:
 
             # tikzplotlib.save("zeroVelocity.tex")                                # Salvando em arquivo .TeX
 
+
     def plotDataAngleZ(self, status, blockGraph = False):
         '''
             (Futuramente será trocada)
@@ -223,6 +230,7 @@ class VelocityMeter:
             plt.legend()
 
             plt.show(block = blockGraph)
+
 
     def plotDataAngleSim(self, status, blockGraph = False):
         '''
@@ -248,6 +256,7 @@ class VelocityMeter:
             plt.show(block = blockGraph)
 
             #tikzplotlib.save("angleSimulator.tex")
+
 
     def plotDataSensor(self, status, blockGraph = False):
         '''
@@ -286,6 +295,7 @@ class VelocityMeter:
             axs[1].legend()
 
             plt.show(block = blockGraph)
+
 
     def plotDataVelocity(self, status, blockGraph = False):
         '''
@@ -348,6 +358,7 @@ class VelocityMeter:
 
             # tikzplotlib.save("velocity_zeroAccel.tex")                          # Salvando em arquivo .TeX
 
+
     def plotDataZeroAccel(self, status, blockGraph = False):
         if status == "Read":
             self.dataMi.append(self.zeroAcceleration.mi)
@@ -376,6 +387,7 @@ class VelocityMeter:
             ax4.plot(velMet.time, self.dataZeroAccel)
             ax5.plot(velMet.time, self.areStopped)
             plt.show(block = blockGraph)
+
 
     def plotAllData(self):
         '''
@@ -430,6 +442,7 @@ class VelocityMeter:
         #ax6.plot(dataFrame['time'], dataFrame["vz"]/100 , '-.', color = 'orange', label = "Vz")
         plt.show(block = True)
 
+
     def plotAngData(self, status, blockGraph = False):
         '''
             Função utilizada para plotar as orientações e erros obtidos no filtro
@@ -476,6 +489,7 @@ class VelocityMeter:
 
             ##tikzplotlib.save("filtroErro.tex")
 
+
     def plotCFangle(self, status, blockGraph = False):
         '''
             Função utilizada para plotar a orientação gerada pelo Filtro Complementar
@@ -492,25 +506,29 @@ class VelocityMeter:
             fig, axs = plt.subplots(1)
 
             fig.suptitle("Filtro Complementar (CF)")
-            axs.plot(velMet.time, np.rad2deg(velMet.dataAngCF), label = 'CF')
+            axs.plot(velMet.time, np.rad2deg(velMet.dataAngCF), label = 'Filtro Complementar')
             axs.plot(velMet.time, np.rad2deg(velMet.dataCamera), label = 'Camera')
             axs.set(ylabel='Angulo [$\degree$]')
             axs.set(xlabel = 'Tempo [s]')
             axs.grid()
             axs.legend()
 
+            tikzplotlib.save("filtroComplementar.tex")
+
             fig, axs = plt.subplots(1)
 
             fig.suptitle("Erro no Filtro Complementar")
-            axs.plot(velMet.time, np.rad2deg(velMet.dataCFe), label = 'Erro do CF')
+            axs.plot(velMet.time, np.rad2deg(velMet.dataCFe), label = 'Erro')
             axs.set(ylabel='Angulo [$\degree$]')
             axs.set(xlabel = 'Tempo [s]')
             axs.grid()
             axs.legend()
 
+            #tikzplotlib.save("filtroComplementarErro.tex")
+
             fig, axs = plt.subplots(1)
 
-            fig.suptitle("Filtro Complementar Explicito (ECF)")
+            #fig.suptitle("Filtro Complementar Explicito (ECF)")
             axs.plot(velMet.time, velMet.angZData, label = 'ECF')
             axs.plot(velMet.time, np.rad2deg(velMet.dataCamera), label = 'Camera')
             #axs.plot(velMet.time, velMet.dataAngIMU, label = 'IMU')
@@ -521,7 +539,33 @@ class VelocityMeter:
 
             plt.show(block = blockGraph)
 
-            ##tikzplotlib.save("filtroErro.tex")
+
+    def plotCFvelocity(self, status, blockGraph = False):
+        '''
+            Função utilizada para plotar a Velocidade Angular a partir do Filtro Complementar
+        '''
+        if status == "Read":
+            self.angularVelCF.append(self.angularVelocity.angularVelocity)
+            self.angularVelCF_filtered.append(self.angularVelocity.filtered)
+        else:
+            fig, axs = plt.subplots(1)
+
+            #fig.suptitle("Velocidade pelo CF")
+            self.angularVelCF_filtered.append(self.angularVelocity.filtered)
+            axs.plot(velMet.time, velMet.angularVelCF, label = 'Derivação')
+            axs.plot(velMet.time, velMet.dataGyroZ, label = 'Giroscópio')
+            axs.plot(velMet.time, velMet.angularVelCF_filtered, label = 'Derivação com Passa-Baixa')
+
+            #axs.plot(velMet.time, np.rad2deg(velMet.dataCamera), label = 'Camera')
+            axs.set(ylabel='Velocidade angular [rad/s]')
+            axs.set(xlabel = 'Tempo [s]')
+            axs.grid()
+            axs.legend()
+
+            #tikzplotlib.save("velocidadeAngular.tex")
+
+            plt.show(block = blockGraph)
+
 
 def listener(velMet, sensor, camera):
     '''
@@ -529,7 +573,7 @@ def listener(velMet, sensor, camera):
         passados como parametro na execução do código
     '''
 
-    # Dois tópicos usados até o momento:
+    # Dois tópicos para imu usados até o momento:
     #   /phone1/android/imu
     #   /sensor
 
@@ -559,4 +603,5 @@ if __name__ == '__main__':
     #velMet.plotAllData()
     #velMet.plotAngData("Plot", blockGraph=False)
     #velMet.plotDataAngleSim("Plot", blockGraph=True)
-    velMet.plotCFangle("Plot", blockGraph=True)
+    velMet.plotCFangle("Plot", blockGraph=False)
+    velMet.plotCFvelocity("Plot", blockGraph=True)
