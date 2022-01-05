@@ -1,11 +1,11 @@
 # IC-RED
 Neste repositório se encontra o código-fonte utilizado na minha Iniciação Científica pela FAPESP em conjunto com a Equipe de Robótica Red Dragons UFSCar. Os dados do Projeto são:
 
-- **Título: **Sistema de estimativa de velocidades
+- **Título:** Sistema de estimativa de velocidades
 lineares de um robô móvel
--  **Processo: **2021/02374-1
-- **Período de Vigência: **2021/02374-1
-- **Orientador: **Roberto Santos Inoue
+-  **Processo:** 2021/02374-1
+- **Período de Vigência:** 2021/02374-1
+- **Orientador:** Roberto Santos Inoue
 
 As opiniões, hipóteses e conclusões ou recomendações expressas neste material são de responsabilidade do(s) autor(es) e não necessariamente refletem a visão da FAPESP.
 
