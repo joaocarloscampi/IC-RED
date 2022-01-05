@@ -14,6 +14,7 @@ class AngularVelocity:
         self.saveAngVel = 0                         # Velocidade angular sem filtro passa-baixa salva
         self.anVelFiltered = 0                      # Velocidade angular filtrada do filtro passa-baixa
         self.startFilter = False                    # Flag que indica o inicio do filtro passa-baixa
+        self.filtered = 0
 
 
     def lowPassFilter(self, a, xi, x):

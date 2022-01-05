@@ -100,4 +100,3 @@ class ECF:
             self.calcVHat()
             self.calcDelta(dt)
             self.calcQhat(orientation, angularVelocity, dt)
-        print("---------------")

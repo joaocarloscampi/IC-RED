@@ -23,6 +23,51 @@ class Velocity:
         self.contSumG = 0                                                       # Conta quantas amostras serão usadas para essa estimativa
         self.calcG = True                                                       # Flag que indica que foi estimado o valor de g
 
+        self.flagCamera = [False, False, False, False, False, False]            # Vetor de verificação da velocidade Zero pela visão
+        self.lastXPos = 0                                                       # Posição X da ultima execução
+        self.lastYPos = 0                                                       # Posição Y da ultima execução
+        self.zeroVelocityCamera = False                                         # Flag que indica a Velocidade Zero pela visão
+        self.trigger = False                                                    # Flag gatilho pra zerar a velocidade linear
+
+
+    def updateCameraFlag(self, flag):
+        '''
+            Função utilizada para atualizar o vetor flagCamera com a ultima
+            flag recebida de verifyCameraPos
+        '''
+
+        self.flagCamera.pop(0)                                                  # Retira o primeiro elemento (mais antigo) do vetor
+        self.flagCamera.append(flag)                                            # Adiciona a flag mais recente no vetor
+
+        condicional = True                                                      # Variavel auxiliar para verificar se todas as posições do vetor são True
+        for flag in self.flagCamera:                                            # Verificação de todas as posições do vetor
+            if not flag:
+                condicional = False
+                break
+
+        if condicional:                                                         # Se todos são verdadeiros no vetor
+            self.zeroVelocityCamera = True                                      # Estado de Velocidade-Zero
+        else:                                                                   # Se não
+            self.zeroVelocityCamera = False                                     # Não-Estado de Velocidade-Zero
+
+
+    def verifyCameraPos(self, camera):
+        '''
+            Função utilizada para verificar se o robô móvel está em um Intervalo
+            considerado parado em função de sua posição
+        '''
+        if camera.dataAvaliable:                                                # Se existem dados disponíveis para verificação
+            print(self.flagCamera)
+            print(self.lastXPos - camera.xPos)
+            #print("---------------")
+            if np.abs(self.lastXPos - camera.xPos) < 0.1 and np.abs(self.lastYPos - camera.yPos) < 0.1: # Se for detectado o não movimento do robô:
+                self.updateCameraFlag(True)                                     # Envia True para updateCameraFlag
+            else:                                                               # Se não
+                self.updateCameraFlag(False)                                    # Envia False para updateCameraFlag
+            self.lastXPos = camera.xPos                                         # Armazenamento das posições atuais para verificação futura
+            self.lastYPos = camera.yPos
+
+
     def gravityVector2(self, zeroVelocity, imu_accel, orientation):
         '''
             Função antiga não utilizada mais
@@ -147,7 +192,7 @@ class Velocity:
         self.lastTime = self.currentTime
         self.v = np.sqrt(self.vx**2 + self.vy**2 + self.vz**2)
 
-    def calcLinearVelocity(self, orientation, imu_accel, zeroVelocity, zeroAcceleration, time):
+    def calcLinearVelocity(self, orientation, imu_accel, zeroVelocity, zeroAcceleration, time, camera):
         '''
             Função utilizada para calcular a velocidade linear do robô utiliando
             a aceleração do sensor junto com os algoritmos de detecção propostos
@@ -166,7 +211,7 @@ class Velocity:
 
         # TROCANDO VELOCIDADE ZERO PARA ACELERAÇÃO ZERO
         # CASO QUEIRA UTILIZAR A VELOIDADE ZERO, COMENTAR OS ''' ABAIXO
-        #'''
+        '''
 
         # MÉTODO DE VELOCIDADE ZERO
 
@@ -212,8 +257,22 @@ class Velocity:
                     self.vz = self.imu_accel_g[2]*self.dt + self.vz
         #'''
 
+        # UNIÃO COM A VELOCIDADE ZERO DA CAMERA
+
+        #'''
+
+        self.verifyCameraPos(camera)
+
+        self.trigger = self.zeroVelocityCamera and zeroAcceleration
+        if self.trigger:
+            self.vx = 0
+            self.vy = 0
+            self.vz = 0
+
         self.getInercialVelocity(orientation, [self.vx, self.vy, self.vz])      # Convertendo as velocidades medidas para o referencial inercial
 
         self.lastTime = self.currentTime                                        # Dando update no lastTime, após todos os calculos
 
         self.v = np.sqrt(self.vx**2 + self.vy**2 + self.vz**2)                  # Calculando o módulo da velocidade
+
+        #'''

@@ -105,6 +105,8 @@ class VelocityMeter:
         self.angularVelCF = []
         self.angularVelCF_filtered = []
 
+        self.areStoppedCamera = []
+
     def getData(self, data):
         '''
             Função que resgata os dados publicados no Tópico selecionado
@@ -152,7 +154,7 @@ class VelocityMeter:
 
         self.camera.euler[0], self.camera.euler[1], self.camera.euler[2] = euler_from_quaternion(self.camera.orientation) # Angulos de Euler (convertidos do quatérnio)
 
-        self.dataAvaliable = True                                               # Flag para o fluxo de dados da camera
+        self.camera.dataAvaliable = True                                               # Flag para o fluxo de dados da camera
 
     def main(self, data):
         '''
@@ -164,7 +166,7 @@ class VelocityMeter:
         self.zeroAcceleration.main(self.zeroVelocity.stopped, self.velocity.g)  # Execução do Algoritmo de Aceleração Zero
 
                                                                                 # Calculo da velocidade linear
-        self.velocity.calcLinearVelocity(self.imu.orientation, self.imu.accel, self.zeroVelocity.stopped, self.zeroAcceleration.notAccel, self.imu.time)
+        self.velocity.calcLinearVelocity(self.imu.orientation, self.imu.accel, self.zeroVelocity.stopped, self.zeroAcceleration.notAccel, self.imu.time, self.camera)
 
                                                                                 # Utilização do Filtro Complementar Explicito
         self.ECF.main(self.imu.orientation, self.velocity.g, self.imu.gyro, self.imu.time-self.lastTime)
@@ -186,6 +188,7 @@ class VelocityMeter:
         self.plotDataAngleSim("Read")
         self.plotCFangle("Read")
         self.plotCFvelocity("Read")
+        self.plotDataVelocityCamera("Read")
 
 
     def plotDataGamma(self, status, blockGraph = False):
@@ -201,8 +204,10 @@ class VelocityMeter:
                 self.areStopped.append(0)                                       # Caso não, adicionar 0
 
         elif status == "Plot":                                                  # Se o modo chamado na função foi de "Plot"
-            plt.rcParams.update({'font.size': 14})
+            #plt.rcParams.update({'font.size': 14})
             fig, axs = plt.subplots(2, sharex=True)
+
+            fig.suptitle("Algoritmo de Velocidade Zero")
 
             axs[0].plot(velMet.time, velMet.dataGamma, label = 'Valores do gamma')
             axs[1].plot(velMet.time, velMet.areStopped, label = 'Robô Parado')  # Configurações matplotlib para plotar os dados
@@ -226,6 +231,7 @@ class VelocityMeter:
 
         elif status == "Plot":                                                  # Se o modo chamado na função foi de "Plot"
             plt.figure(figsize=(16,8))                                          # Configurações de plot no matplotlib
+            plt.title("Angulo em Z retornado do simulador")
             plt.plot(velMet.time, velMet.dataZ, label = 'Valores do angulo Z')
             plt.legend()
 
@@ -245,6 +251,7 @@ class VelocityMeter:
 
         elif status == "Plot":                                                  # Se o modo chamado na função foi de "Plot"
             plt.figure(figsize=(16,8))                                          # Configurações de plot no matplotlib
+            plt.title("Angulo retornado direto do Simulador")
             plt.plot(velMet.time, velMet.dataZ, label = 'Valores do angulo Z')
             plt.plot(velMet.time, velMet.dataY, label = 'Valores do angulo Y')
             plt.plot(velMet.time, velMet.dataX, label = 'Valores do angulo X')
@@ -316,8 +323,10 @@ class VelocityMeter:
                 v = np.sqrt(dataFrame["vx"][i] ** 2 + dataFrame["vy"][i] ** 2 + dataFrame["vz"][i] ** 2 )/100
                 velocityLinear.append(v)
 
-            plt.rcParams.update({'font.size': 14})                              # Configurações do matplotlib
+            #plt.rcParams.update({'font.size': 14})                              # Configurações do matplotlib
             plt.figure()                                                        # Figura 1: Módulo da velocidade medida
+
+            plt.title("Módulo da velocidade linear")
 
             plt.plot(self.time, self.dataVelocity, label = 'Estimado')
             plt.plot(dataFrame['time'], velocityLinear, '-.', color = 'orange', label = "Real")
@@ -326,14 +335,16 @@ class VelocityMeter:
             plt.xlabel("Tempo [s]")
             plt.ylabel("Velocidade [m/s]")
 
-            plt.rcParams.update({'font.size': 10})
+            #plt.rcParams.update({'font.size': 10})
             plt.legend()
 
-            plt.rcParams.update({'font.size': 14})
+            #plt.rcParams.update({'font.size': 14})
             plt.grid()
             plt.show(block = blockGraph)
 
             fig, (ax1, ax2, ax3) = plt.subplots(3, sharex=True)                 # Figura 2: Velocidades separadas por eixo x, y e z
+
+            fig.suptitle("Velocidade linear estimada separada por eixos x, y e z")
 
             ax1.plot(self.time, self.dataVx, label = 'Estimado')
             ax2.plot(self.time, self.dataVy, label = 'Estimado')
@@ -351,9 +362,9 @@ class VelocityMeter:
             ax2.grid()
             ax3.grid()
 
-            plt.rcParams.update({'font.size': 10})
+            #plt.rcParams.update({'font.size': 10})
             ax2.legend()
-            plt.rcParams.update({'font.size': 14})
+            #plt.rcParams.update({'font.size': 14})
             plt.show(block = blockGraph)
 
             # tikzplotlib.save("velocity_zeroAccel.tex")                          # Salvando em arquivo .TeX
@@ -464,7 +475,7 @@ class VelocityMeter:
         else:
             fig, axs = plt.subplots(1)
 
-            fig.suptitle("Angulo pelo filtro")
+            fig.suptitle("Angulo no Filtro Complementar Explícito")
             axs.plot(velMet.time, velMet.angZData, label = 'Valores do angulo em Z')
             axs.plot(velMet.time, velMet.angYData, label = 'Valores do angulo em Y')
             axs.plot(velMet.time, velMet.angXData, label = 'Valores do angulo em X')
@@ -479,6 +490,7 @@ class VelocityMeter:
             ##tikzplotlib.save("filtroAngulo.tex")
 
             fig, axs = plt.subplots(1)
+            fig.suptitle("Erro no Filtro Complementar Explícito")
             axs.plot(velMet.time, velMet.erroZ)
             axs.plot(velMet.time, velMet.erroY)
             axs.plot(velMet.time, velMet.erroX)
@@ -498,8 +510,7 @@ class VelocityMeter:
             self.dataAngCF.append(self.CF.phi_f)
             self.dataCFe.append(self.CF.e)
             self.timeCamera.append(self.camera.time)
-            print("Tempo Camera: ", self.camera.time)
-            print("Tempo IMU: ", self.imu.time)
+            #print("Tempo IMU: ", self.imu.time)
             self.dataCamera.append(self.camera.euler[2])
             self.dataAngIMU.append(np.rad2deg(self.imu.euler[2]))
         else:
@@ -528,7 +539,7 @@ class VelocityMeter:
 
             fig, axs = plt.subplots(1)
 
-            #fig.suptitle("Filtro Complementar Explicito (ECF)")
+            fig.suptitle("Filtro Complementar Explicito (ECF)")
             axs.plot(velMet.time, velMet.angZData, label = 'ECF')
             axs.plot(velMet.time, np.rad2deg(velMet.dataCamera), label = 'Camera')
             #axs.plot(velMet.time, velMet.dataAngIMU, label = 'IMU')
@@ -550,10 +561,11 @@ class VelocityMeter:
         else:
             fig, axs = plt.subplots(1)
 
-            #fig.suptitle("Velocidade pelo CF")
-            self.angularVelCF_filtered.append(self.angularVelocity.filtered)
+            fig.suptitle("Velocidade angular pelo CF")
+            #self.angularVelCF_filtered.append(self.angularVelocity.filtered)
             axs.plot(velMet.time, velMet.angularVelCF, label = 'Derivação')
             axs.plot(velMet.time, velMet.dataGyroZ, label = 'Giroscópio')
+            #velMet.angularVelCF_filtered.pop(0)
             axs.plot(velMet.time, velMet.angularVelCF_filtered, label = 'Derivação com Passa-Baixa')
 
             #axs.plot(velMet.time, np.rad2deg(velMet.dataCamera), label = 'Camera')
@@ -565,6 +577,65 @@ class VelocityMeter:
             #tikzplotlib.save("velocidadeAngular.tex")
 
             plt.show(block = blockGraph)
+
+
+    def plotDataVelocityCamera(self, status, blockGraph = False):
+        '''
+            Função utilizada para plotar as velocidades estimadas e esperadas
+            do robô móvel utilizando o algoritmo de aceleração zero com incremento
+            da visão computacional proposto no projeto.
+        '''
+
+        if status == "Read":                                                    # Se o modo chamado na função for de leitura "Read"
+            if self.velocity.trigger:
+                self.areStoppedCamera.append(1)                                 # Se estiver parado, adicionar 1
+            else:
+                self.areStoppedCamera.append(0)                                 # Caso não, adicionar 0
+
+        elif status == "Plot":                                                  # Se o modo chamado na função foi de "Plot"
+            #plt.rcParams.update({'font.size': 14})
+            dataFrame = pd.read_csv('real.csv')
+            fig, (ax1, ax2, ax3) = plt.subplots(3, sharex=True)                 # Figura 2: Velocidades separadas por eixo x, y e z
+
+            fig.suptitle("Velocidade linear com Aceleracao-Zero+Visao")
+
+            ax1.plot(self.time, self.dataVx, label = 'Estimado')
+            ax2.plot(self.time, self.dataVy, label = 'Estimado')
+            ax3.plot(self.time, self.dataVz, label = 'Estimado')
+
+            ax1.plot(dataFrame['time'], dataFrame["vx"]/100 , '-.', color = 'orange', label = "Real")
+            ax2.plot(dataFrame['time'], dataFrame["vy"]/100 , '-.', color = 'orange', label = "Real")
+            ax3.plot(dataFrame['time'], dataFrame["vz"]/100 , '-.', color = 'orange', label = "Real")
+
+            ax2.set(ylabel='Velocidade [m/s]')
+            ax3.set(xlabel='Tempo [s]')
+            ax3.set(xlim=(self.time[0], self.time[-1]))
+
+            ax1.grid()
+            ax2.grid()
+            ax3.grid()
+
+
+            #plt.rcParams.update({'font.size': 10})
+            ax2.legend()
+            #plt.rcParams.update({'font.size': 14})
+
+            tikzplotlib.save("velocidadeLinearCamera.tex")                      # Salvando em arquivo .TeX
+
+
+            fig, axs = plt.subplots(1, sharex=True)
+
+            fig.suptitle("Velocidade Zero pela Visão Computacional")
+
+            #velMet.areStoppedCamera.append(velMet.areStoppedCamera[-1])
+
+            axs.plot(velMet.time, velMet.areStoppedCamera, label = 'Robô Parado')
+            axs.set(ylabel = 'Parado', xlabel = 'Tempo [s]')
+            axs.grid()
+
+            plt.show(block = blockGraph)
+
+
 
 
 def listener(velMet, sensor, camera):
@@ -595,13 +666,14 @@ if __name__ == '__main__':
 
     # Após o código ser executado, as funções de plot são chamadas
 
-    #velMet.plotDataGamma("Plot", blockGraph = False)
+    #velMet.pop
+    velMet.plotDataGamma("Plot", blockGraph = False)
     #velMet.plotDataAngleZ("Plot", blockGraph = False)
-    #velMet.plotDataVelocity("Plot", blockGraph = True)
-    #velMet.plotDataZeroAccel("Plot", blockGraph = True)
+    #velMet.plotDataVelocity("Plot", blockGraph = False)
+    #velMet.plotDataZeroAccel("Plot", blockGraph = False)
     #velMet.plotDataSensor("Plot", blockGraph=False)
-    #velMet.plotAllData()
     #velMet.plotAngData("Plot", blockGraph=False)
-    #velMet.plotDataAngleSim("Plot", blockGraph=True)
-    velMet.plotCFangle("Plot", blockGraph=False)
-    velMet.plotCFvelocity("Plot", blockGraph=True)
+    #velMet.plotDataAngleSim("Plot", blockGraph=False)
+    #velMet.plotCFangle("Plot", blockGraph=False)
+    velMet.plotCFvelocity("Plot", blockGraph=False)
+    velMet.plotDataVelocityCamera("Plot", blockGraph=True)

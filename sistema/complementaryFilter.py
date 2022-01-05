@@ -22,7 +22,6 @@ class CF:
         self.e =  -1 * np.arctan2(np.sin(self.phi_v), np.cos(self.phi_v)) + np.arctan2(np.sin(self.phi_f), np.cos(self.phi_f))
         self.e = np.arctan2(np.sin(self.e), np.cos(self.e))     # Erro entre o angulo atual e o da visão
         #self.e = self.phi_v - self.phi_f                       # Erro entre o angulo atual e o da visão
-        print("Visao: ", self.phi_v)
         #print("e: ", self.e)
         self.somaErro += self.e*dt                              # Acumulando o erro para o controlador PI
         self.delta = self.Kp*self.e + self.Ki*self.somaErro     # Calculo de Delta
